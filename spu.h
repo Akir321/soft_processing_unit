@@ -8,8 +8,10 @@ const int PrecisionConst   = 100;
 
 enum errors
 {
-    STACK_UNDERFLOW = 1,
-    UNKNOWN_COMMAND = 2
+    STACK_UNDERFLOW  = 1,
+    INCORECT_PUSH    = 2,
+    UNKNOWN_COMMAND  = 3,
+    DIVISION_BY_ZERO = 4
 };
 
 int runSPU(FILE *fin, FILE *fout);
