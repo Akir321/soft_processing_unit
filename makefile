@@ -8,6 +8,11 @@ CXX_FLAGS = -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-
  -Wstrict-null-sentinel -Wtype-limits -Wwrite-strings -Werror=vla -D_DEBUG\
  -D_EJUDGE_CLIENT_SIDE
 
+all: spu
 
-all:
+spu:
 	@$(CXX) spu.cpp main_spu.cpp stack.cpp -o spu $(CXX_FLAGS)
+
+assembler:
+	@$(CXX) assembler.cpp main_assembler.cpp -o assembler $(CXX_FLAGS)
+
