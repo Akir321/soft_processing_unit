@@ -25,6 +25,8 @@ int runSPU(FILE *fin, FILE *fout)
         fscanf(fin, "%s", command);
     }
 
+    stackDtor(&spuStack);
+
     return EXIT_SUCCESS;
 }
 
@@ -34,10 +36,10 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
 
     if      (strcmp(command, "push") == 0)
     {
-        elem_t value = 0;
-        if (fscanf(fin, elemFormat, &value) == 0) return INCORECT_PUSH;
+        float value = 0;
+        if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
 
-        stackPush(spuStack, value);
+        stackPush(spuStack, (elem_t)(value * PrecisionConst));
     }
     else if (strcmp(command, "out") == 0)
     {
@@ -46,8 +48,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
         stackErrorField error = stackPop(spuStack, &value);
         if (error.stack_underflow) return STACK_UNDERFLOW;
 
-        fprintf(fout, elemFormat "\n", value);
-        fflush(fout);
+        fprintf(fout, "%f\n", (float)value / (float)PrecisionConst);
     }
     else if (strcmp(command, "add") == 0)
     {
@@ -82,7 +83,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
 
         if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
 
-        elem_t mult = value1 * value2;
+        elem_t mult = value1 * value2 / PrecisionConst;
         stackPush(spuStack, mult);
     }
     else if (strcmp(command, "div") == 0)
@@ -95,18 +96,18 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
         if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
         if (divisor == 0)                                     return DIVISION_BY_ZERO;
 
-        elem_t divis = dividend / divisor;
+        elem_t divis = (dividend * PrecisionConst) / divisor;
         stackPush(spuStack, divis);
     }
     else if (strcmp(command, "in") == 0)
     {
-        elem_t value = 0;
+        float value = 0;
         static int valueNumber = 0;
 
-        printf("type in value (number " elemFormat ") from console: ", ++valueNumber);
-        scanf(elemFormat, &value);
+        printf("type in value (number %d) from console: ", ++valueNumber);
+        scanf("%f", &value);
 
-        stackPush(spuStack, value);
+        stackPush(spuStack, (elem_t)(value * PrecisionConst));
     }
     else
     {
