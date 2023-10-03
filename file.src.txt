@@ -1,0 +1,14 @@
+push 2
+sqrt
+push 3
+sqrt
+mul
+out
+push 20
+push 9
+sub
+push 9
+sqrt
+mul
+out
+hlc

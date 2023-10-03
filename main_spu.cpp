@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "spu.h"
 
-int main()
+int main(int argc, const char *argv[])
 {
     printf("#hi! this is a program that calculates different expressions\n");
     printf("#it is  a stack calculator\n");
@@ -10,8 +10,21 @@ int main()
     printf("#to start calculating just type in the commands and values\n");
     printf("#use documentation to find out what commands do\n\n");
 
-    FILE *fin  = stdin;
+    const char *fileInName = "file.src.txt";
+
+    if (argc > 1)
+    {
+        fileInName = argv[1];
+    }
+
+    FILE *fin  = fopen(fileInName, "rb");
     FILE *fout = stdout;
+
+    if (!fin) 
+    {
+        printf("ERROR: couldn't open file %s\n", fileInName);
+        return 1;
+    }
 
     int error = runSPU(fin, fout);
     if (error)
