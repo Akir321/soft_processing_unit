@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 
 #include "spu.h"
 #include "stack.h"
@@ -108,6 +109,16 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
         scanf("%f", &value);
 
         stackPush(spuStack, (elem_t)(value * PrecisionConst));
+    }
+    else if (strcmp(command, "sqrt") == 0)
+    {
+        elem_t value = 0;
+
+        stackErrorField error = stackPop(spuStack, &value);
+        if (error.stack_underflow) return STACK_UNDERFLOW;
+
+        float sqRoot = sqrt((float)value / PrecisionConst);
+        stackPush(spuStack, (elem_t)(sqRoot * PrecisionConst));
     }
     else
     {
