@@ -30,6 +30,6 @@ enum commands
 
 int runSPU(FILE *fin, FILE *fout);
 
-int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout);
+int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout);
 
 #endif //__SPU_H__

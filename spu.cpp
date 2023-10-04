@@ -15,15 +15,15 @@ int runSPU(FILE *fin, FILE *fout)
     stack spuStack = {};
     stackCtor(&spuStack, DEFAULT_CAPACITY);
 
-    char command[MaxCommandLength] = {};
-    fscanf(fin, "%s", command);
+    int command = 0;
+    fscanf(fin, "%d", &command);
 
-    while (strcmp(command, "hlc") != 0)
+    while (command != HLC)
     {
         int error = processCommand(command, &spuStack, fin, fout);
         if (error) return error;
 
-        fscanf(fin, "%s", command);
+        fscanf(fin, "%d", &command);
     }
 
     stackDtor(&spuStack);
@@ -31,18 +31,16 @@ int runSPU(FILE *fin, FILE *fout)
     return EXIT_SUCCESS;
 }
 
-int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
+int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout)
 {
-    assert(command);
-
-    if      (strcmp(command, "push") == 0)
+    if      (command == PUSH)
     {
         float value = 0;
         if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
 
         stackPush(spuStack, (elem_t)(value * PrecisionConst));
     }
-    else if (strcmp(command, "out") == 0)
+    else if (command == OUT)
     {
         elem_t value = 0;
     
@@ -51,7 +49,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
 
         fprintf(fout, "%f\n", (float)value / (float)PrecisionConst);
     }
-    else if (strcmp(command, "add") == 0)
+    else if (command == IN)
     {
         elem_t value1 = 0, value2 = 0;
 
@@ -63,7 +61,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
         elem_t addit = value1 + value2;
         stackPush(spuStack, addit);
     }
-    else if (strcmp(command, "sub") == 0)
+    else if (command == SUB)
     {
         elem_t subtrahend = 0, minuend = 0;
 
@@ -75,7 +73,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
         elem_t subt = minuend - subtrahend;
         stackPush(spuStack, subt);
     }
-    else if (strcmp(command, "mul") == 0)
+    else if (command == MUL)
     {
         elem_t value1 = 0, value2 = 0;
 
@@ -87,7 +85,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
         elem_t mult = value1 * value2 / PrecisionConst;
         stackPush(spuStack, mult);
     }
-    else if (strcmp(command, "div") == 0)
+    else if (command == DIV)
     {
         elem_t dividend = 0, divisor = 0;
 
@@ -100,7 +98,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
         elem_t divis = (dividend * PrecisionConst) / divisor;
         stackPush(spuStack, divis);
     }
-    else if (strcmp(command, "in") == 0)
+    else if (command == IN)
     {
         float value = 0;
         static int valueNumber = 0;
@@ -110,7 +108,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
 
         stackPush(spuStack, (elem_t)(value * PrecisionConst));
     }
-    else if (strcmp(command, "sqrt") == 0)
+    else if (command == SQRT)
     {
         elem_t value = 0;
 
@@ -122,7 +120,7 @@ int processCommand(char *command, stack *spuStack, FILE *fin, FILE *fout)
     }
     else
     {
-        fprintf(fout, "ERROR: unknown command: %s\n", command);
+        fprintf(fout, "ERROR: unknown command: %d\n", command);
         return UNKNOWN_COMMAND;
     }
 

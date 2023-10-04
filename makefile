@@ -13,6 +13,9 @@ all: spu
 spu:
 	@$(CXX) spu.cpp main_spu.cpp stack.cpp -o spu $(CXX_FLAGS)
 
-assembler:
+assm:
 	@$(CXX) assembler.cpp main_assembler.cpp -o assembler $(CXX_FLAGS)
+
+disassm:
+	@$(CXX) disassembler.cpp main_disassembler.cpp -o disassembler $(CXX_FLAGS)
 
