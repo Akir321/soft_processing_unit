@@ -53,6 +53,11 @@ int runAssembler(FILE *fin, FILE *fout)
         {
             fprintf(fout, "%d\n", SQRT);
         }
+        else
+        {
+            fprintf(fout, "ERROR: unknown command: %s\n", command);
+            return UNKNOWN_COMMAND;
+        }
                 
         if(!fscanf(fin, "%s", command)) break;
     }
@@ -66,6 +71,8 @@ int processArgv(int argC, const char *argV[], const char **fileInName, char **fi
     assert(argV);
     assert(fileInName);
     assert(fileOutName);
+
+    if (argC == 1) return 1;
 
     *fileInName  = argV[1];
 

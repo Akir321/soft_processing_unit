@@ -8,64 +8,58 @@
 static const int   NameAddSymbolsLen = 8;
 static const char *NameAddSymbols = ".src.txt";
 
-const int nCommands = 8;
-
-static const char *stringCommands[nCommands] = { "push",
-                                                 "in",
-                                                 "out",
-                                                 "add",
-                                                 "sub",
-                                                 "mul",
-                                                 "div",
-                                                 "sqrt" };
-
 int runDisassembler(FILE *fin, FILE *fout)
 {
     assert(fin);
     assert(fout);
 
-    int c = 0;
-    fscanf(fin, "%d", &c);
+    int command = 0;
+    fscanf(fin, "%d", &command);
 
-    while (c != HLC)
+    while (command != HLC)
     {
-        if (c == PUSH)
+        if (command == PUSH)
         {
             float value = 0;
             if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
 
-            fprintf(fout, "%s %f\n", stringCommands[PUSH], value);
+            fprintf(fout, "%s %f\n", "push", value);
         }
-        else if (c == IN)
+        else if (command == IN)
         {
-            fprintf(fout, "%s\n", stringCommands[IN]);
+            fprintf(fout, "%s\n", "in");
         }
-        else if(c == OUT)
+        else if(command == OUT)
         {
-            fprintf(fout, "%s\n", stringCommands[OUT]);
+            fprintf(fout, "%s\n", "out");
         }
-        else if(c == ADD)
+        else if(command == ADD)
         {
-            fprintf(fout, "%s\n", stringCommands[ADD]);
+            fprintf(fout, "%s\n", "add");
         }
-        else if(c == SUB)
+        else if(command == SUB)
         {
-            fprintf(fout, "%s\n", stringCommands[SUB]);
+            fprintf(fout, "%s\n", "sub");
         }
-        else if(c == MUL)
+        else if(command == MUL)
         {
-            fprintf(fout, "%s\n", stringCommands[MUL]);
+            fprintf(fout, "%s\n", "mul");
         }
-        else if(c == DIV)
+        else if(command == DIV)
         {
-            fprintf(fout, "%s\n", stringCommands[DIV]);
+            fprintf(fout, "%s\n", "div");
         }
-        else if(c == SQRT)
+        else if(command == SQRT)
         {
-            fprintf(fout, "%s\n", stringCommands[SQRT]);
+            fprintf(fout, "%s\n", "sqrt");
+        }
+        else
+        {
+            fprintf(fout, "ERROR: unknown command: %s\n", command);
+            return UNKNOWN_COMMAND;
         }
                 
-        if(!fscanf(fin, "%d", &c)) break;
+        if(!fscanf(fin, "%d", &command)) break;
     }
 
     fprintf(fout, "%s", "hlc");
