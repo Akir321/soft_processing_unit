@@ -55,7 +55,7 @@ int runDisassembler(FILE *fin, FILE *fout)
         }
         else
         {
-            fprintf(fout, "ERROR: unknown command: %s\n", command);
+            fprintf(fout, "ERROR: unknown command: %d\n", command);
             return UNKNOWN_COMMAND;
         }
                 
