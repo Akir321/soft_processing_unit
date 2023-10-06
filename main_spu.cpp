@@ -3,19 +3,9 @@
 
 int main(int argc, const char *argv[])
 {
-    printf("#hi! this is a program that calculates different expressions\n");
-    printf("#it is  a stack calculator\n");
-    printf("#sooner it is going to be a primitive processor\n\n");
 
-    printf("#to start calculating just type in the commands and values\n");
-    printf("#use documentation to find out what commands do\n\n");
-
-    const char *fileInName = "file.src.txt";
-
-    if (argc > 1)
-    {
-        fileInName = argv[1];
-    }
+    if (argc == 1) {  printf("File name not given\n"); return 0; }
+    const char *fileInName = argv[1];
 
     FILE *fin  = fopen(fileInName, "rb");
     FILE *fout = stdout;
@@ -26,17 +16,17 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    int error = runSPU(fin, fout);
+    Processor spu = {};
+    spuCtor(&spu, 4);
+
+    int error = runSPU(&spu, fin, fout);
     if (error)
     {
         printf("ERROR: %d\n", error);
         return error;
     }
 
+    spuDtor(&spu);
     fclose(fin);
     fclose(fout);
-
-    putchar('\n');
-    printf("#we hope that our program helped you in your calculations\n");
-    printf("#see you in the next one!\n");
 }

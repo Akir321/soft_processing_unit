@@ -61,33 +61,34 @@ int spuDump(Processor *spu, const char *file, int line, const char *function)
     return EXIT_SUCCESS;
 }
 
-int runSPU(FILE *fin, FILE *fout)
+int runSPU(Processor *spu, FILE *fin, FILE *fout)
 {
+    assert(spu);
     assert(fin);
     assert(fout);
     assert(fin != fout);
-
-    stack spuStack = {};
-    stackCtor(&spuStack, DEFAULT_CAPACITY);
 
     int command = 0;
     fscanf(fin, "%d", &command);
 
     while (command != HLC)
     {
-        int error = processCommand(command, &spuStack, fin, fout);
+        int error = processCommand(command, &spu->stk, fin, fout);
         if (error) return error;
 
         fscanf(fin, "%d", &command);
     }
-
-    stackDtor(&spuStack);
 
     return EXIT_SUCCESS;
 }
 
 int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout)
 {
+    assert(spuStack);
+    assert(fin);
+    assert(fout);
+    assert(fin != fout);
+
     switch(command)
     {
         case PUSH:

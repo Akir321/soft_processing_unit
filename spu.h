@@ -42,7 +42,7 @@ int spuDtor (Processor *spu);
 int spuError(Processor *spu);
 int spuDump (Processor *spu, const char *file, int line, const char *function);
 
-int runSPU(FILE *fin, FILE *fout);
+int runSPU(Processor *spu, FILE *fin, FILE *fout);
 
 int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout);
 
