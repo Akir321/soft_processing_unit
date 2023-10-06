@@ -7,12 +7,15 @@
 const int MaxCommandLength = 10;
 const int PrecisionConst   = 100;
 
+const int RegistersNumber  = 4;
+
 enum spuErrors
 {
     STACK_UNDERFLOW  = 1,
     INCORECT_PUSH    = 2,
     UNKNOWN_COMMAND  = 3,
-    DIVISION_BY_ZERO = 4
+    DIVISION_BY_ZERO = 4,
+    FILE_ERROR       = 5,
 };
 
 enum commands
@@ -27,6 +30,17 @@ enum commands
     DIV  =  6,
     SQRT =  7
 };
+
+struct Processor
+{
+    stack stk;
+    int registers[RegistersNumber];
+};
+
+int spuCtor (Processor *spu, size_t stackCapacity);
+int spuDtor (Processor *spu);
+int spuError(Processor *spu);
+int spuDump (Processor *spu, const char *file, int line, const char *function);
 
 int runSPU(FILE *fin, FILE *fout);
 

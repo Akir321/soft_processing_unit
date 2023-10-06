@@ -6,6 +6,61 @@
 #include "spu.h"
 #include "stack.h"
 
+int spuCtor(Processor *spu, size_t stackCapacity)
+{
+    assert(spu);
+
+    stackCtor(&spu->stk, stackCapacity);
+
+    for (int i = 0; i < RegistersNumber; i++)
+    {
+        spu->registers[i] = 0;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int spuDtor(Processor *spu)
+{
+    assert(spu);
+
+    stackDtor(&spu->stk);
+
+    for (int i = 0; i < RegistersNumber; i++)
+    {
+        spu->registers[i] = 0;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int spuError(Processor *spu)
+{
+    assert(spu);
+
+    int stackErr = errorFieldToU(stackError(&spu->stk));
+    if (stackErr) return stackErr;
+    
+    return EXIT_SUCCESS;
+}
+
+int spuDump(Processor *spu, const char *file, int line, const char *function)
+{
+    assert(spu);
+
+    printf("I'm spuDump called from %s (%d) %s\n", function, line, file);
+    printf("Processor's stack:\n");
+    stackDump(&spu->stk, file, line, function);
+
+    printf("Register's:\n");
+    for (int i = 0; i < RegistersNumber; i++)
+    {
+        printf("  r%cx = %d\n", i + 'a', spu->registers[i]);
+    }
+
+    return EXIT_SUCCESS;
+}
+
 int runSPU(FILE *fin, FILE *fout)
 {
     assert(fin);

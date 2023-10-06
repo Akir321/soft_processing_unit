@@ -33,6 +33,9 @@ int main(int argc, const char *argv[])
         return error;
     }
 
+    fclose(fin);
+    fclose(fout);
+
     putchar('\n');
     printf("#we hope that our program helped you in your calculations\n");
     printf("#see you in the next one!\n");
