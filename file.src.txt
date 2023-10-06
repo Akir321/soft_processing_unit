@@ -1,14 +1,19 @@
-push 2
+push 2.000000
 sqrt
-push 3
+push 3.000000
 sqrt
 mul
 out
-push 20
-push 9
+push 20.000000
+push 9.000000
 sub
-push 9
+push 9.000000
 sqrt
 mul
 out
+in
+push 3.000000
+div
+sqrt
+pop rbx
 hlc

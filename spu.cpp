@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "spu.h"
+#include "commands.h"
 #include "stack.h"
 
 int spuCtor(Processor *spu, size_t stackCapacity)
@@ -136,6 +137,12 @@ int processCommand(int command, Processor *spu, FILE *fin, FILE *fout)
         case SQRT:
         {
             int error = commandSqrt(spu);
+            if (error) return error;
+            break;
+        }
+        case POP:
+        {
+            int error = commandPop(spu, fin);
             if (error) return error;
             break;
         }
@@ -274,5 +281,23 @@ int commandSqrt(Processor *spu)
     float sqRoot = sqrt((float)value / PrecisionConst);
     stackPush(&spu->stk, (elem_t)(sqRoot * PrecisionConst));
     
+    return EXIT_SUCCESS;
+}
+
+int commandPop(Processor *spu, FILE *fin)
+{
+    assert(spu);
+
+    elem_t value = 0;
+
+    stackErrorField error = stackPop(&spu->stk, &value);
+    if (error.stack_underflow) return STACK_UNDERFLOW;
+
+    int regNumber = -1;
+    if (!fscanf(fin, "%d", &regNumber))                return INCORREST_POP;
+
+    if (regNumber < 0 || regNumber >= RegistersNumber) return INCORREST_POP;
+    spu->registers[regNumber] = value;
+
     return EXIT_SUCCESS;
 }

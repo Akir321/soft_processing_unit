@@ -3,10 +3,10 @@
 #include <string.h>
 
 #include "assembler.h"
-#include "spu.h"
+#include "commands.h"
 
-static const int   NameAddSymbolsLen = 9;
-static const char *NameAddSymbols = ".byte.txt";
+const int          NameAddSymbolsLen = 9;
+const char * const NameAddSymbols = ".byte.txt";
 
 int runAssembler(FILE *fin, FILE *fout)
 {
@@ -21,7 +21,7 @@ int runAssembler(FILE *fin, FILE *fout)
         if (strcmp(command, "push") == 0)
         {
             float value = 0;
-            if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
+            if (fscanf(fin, "%f", &value) == 0) return INCORRECT_PUSH;
 
             fprintf(fout, "%d %f\n", PUSH, value);
         }
@@ -29,29 +29,39 @@ int runAssembler(FILE *fin, FILE *fout)
         {
             fprintf(fout, "%d\n", IN);
         }
-        else if(strcmp(command, "out")  == 0)
+        else if (strcmp(command, "out")  == 0)
         {
             fprintf(fout, "%d\n", OUT);
         }
-        else if(strcmp(command, "add")  == 0)
+        else if (strcmp(command, "add")  == 0)
         {
             fprintf(fout, "%d\n", ADD);
         }
-        else if(strcmp(command, "sub")  == 0)
+        else if (strcmp(command, "sub")  == 0)
         {
             fprintf(fout, "%d\n", SUB);
         }
-        else if(strcmp(command, "mul")  == 0)
+        else if (strcmp(command, "mul")  == 0)
         {
             fprintf(fout, "%d\n", MUL);
         }
-        else if(strcmp(command, "div")  == 0)
+        else if (strcmp(command, "div")  == 0)
         {
             fprintf(fout, "%d\n", DIV);
         }
-        else if(strcmp(command, "sqrt")  == 0)
+        else if (strcmp(command, "sqrt") == 0)
         {
             fprintf(fout, "%d\n", SQRT);
+        }
+        else if (strcmp(command, "pop")  == 0)
+        {
+            char reg[MaxCommandLength] = {};
+            if (!fscanf(fin, "%16s", reg)) return INCORRECT_POP;
+
+            int registerNumber = getRegisterNumber(reg);
+            if (registerNumber == -1)      return INCORRECT_POP;
+
+            fprintf(fout, "%d %d\n", POP, registerNumber);
         }
         else
         {
@@ -97,4 +107,18 @@ void pointToZero(char *str)
     while(str[i] != '.' && str[i] != '\0') { i++; }
 
     str[i] = '\0';
+}
+
+int getRegisterNumber(const char *reg)
+{
+    assert(reg);
+
+    if (reg[0] != 'r')  return -1;
+    if (reg[2] != 'x')  return -1;
+    if (reg[3] != '\0') return -1;
+
+    int number = reg[1] - 'a';
+    if (number < 0 || number >= RegistersNumber) return -1;
+
+    return number;
 }

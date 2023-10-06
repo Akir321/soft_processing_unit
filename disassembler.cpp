@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "disassembler.h"
-#include "spu.h"
+#include "commands.h"
 
 static const int   NameAddSymbolsLen = 8;
 static const char *NameAddSymbols = ".src.txt";
@@ -21,7 +21,7 @@ int runDisassembler(FILE *fin, FILE *fout)
         if (command == PUSH)
         {
             float value = 0;
-            if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
+            if (fscanf(fin, "%f", &value) == 0) return INCORRECT_PUSH;
 
             fprintf(fout, "%s %f\n", "push", value);
         }
@@ -52,6 +52,14 @@ int runDisassembler(FILE *fin, FILE *fout)
         else if(command == SQRT)
         {
             fprintf(fout, "%s\n", "sqrt");
+        }
+        else if (command == POP)
+        {
+            int regNumber  = -1;
+            if (!fscanf(fin, "%d", &regNumber))                 return INCORRECT_POP;
+
+            if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_POP;
+            fprintf(fout, "%s r%cx\n", "pop", regNumber + 'a');
         }
         else
         {

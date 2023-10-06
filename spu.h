@@ -2,12 +2,11 @@
 #define  __SPU_H__
 
 #include <stdio.h>
+
+#include "commands.h"
 #include "stack.h"
 
-const int MaxCommandLength = 10;
 const int PrecisionConst   = 100;
-
-const int RegistersNumber  = 4;
 
 enum spuErrors
 {
@@ -16,20 +15,8 @@ enum spuErrors
     UNKNOWN_COMMAND  = 3,
     DIVISION_BY_ZERO = 4,
     FILE_ERROR       = 5,
-    INCORRECT_INPUT  = 6
-};
-
-enum commands
-{
-    HLC  = -1,
-    PUSH =  0,
-    IN   =  1,
-    OUT  =  2,
-    ADD  =  3,
-    SUB  =  4,
-    MUL  =  5,
-    DIV  =  6,
-    SQRT =  7
+    INCORRECT_INPUT  = 6,
+    INCORREST_POP    = 7
 };
 
 struct Processor
@@ -55,5 +42,6 @@ int commandMul (Processor *spu);
 int commandDiv (Processor *spu);
 int commandIn  (Processor *spu);
 int commandSqrt(Processor *spu);
+int commandPop (Processor *spu, FILE *fin);
 
 #endif //__SPU_H__

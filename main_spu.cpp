@@ -26,6 +26,8 @@ int main(int argc, const char *argv[])
         return error;
     }
 
+    spuDump(&spu, __FILE__, __LINE__, __func__);
+
     spuDtor(&spu);
     fclose(fin);
     fclose(fout);
