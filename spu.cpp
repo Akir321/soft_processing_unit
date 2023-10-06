@@ -73,7 +73,7 @@ int runSPU(Processor *spu, FILE *fin, FILE *fout)
 
     while (command != HLC)
     {
-        int error = processCommand(command, &spu->stk, fin, fout);
+        int error = processCommand(command, spu, fin, fout);
         if (error) return error;
 
         fscanf(fin, "%d", &command);
@@ -82,9 +82,9 @@ int runSPU(Processor *spu, FILE *fin, FILE *fout)
     return EXIT_SUCCESS;
 }
 
-int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout)
+int processCommand(int command, Processor *spu, FILE *fin, FILE *fout)
 {
-    assert(spuStack);
+    assert(spu);
     assert(fin);
     assert(fout);
     assert(fin != fout);
@@ -93,95 +93,50 @@ int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout)
     {
         case PUSH:
         {
-            float value = 0;
-            if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
-
-            stackPush(spuStack, (elem_t)(value * PrecisionConst));
+            int error = commandPush(spu, fin);
+            if (error) return error;
             break;
         }
         case OUT:
         {
-            elem_t value = 0;
-        
-            stackErrorField error = stackPop(spuStack, &value);
-            if (error.stack_underflow) return STACK_UNDERFLOW;
-
-            fprintf(fout, "%f\n", (float)value / (float)PrecisionConst);
+            int error = commandOut(spu, fout);
+            if (error) return error;
             break;
         }
         case ADD:
         {
-            elem_t value1 = 0, value2 = 0;
-
-            stackErrorField error1 = stackPop(spuStack, &value1);
-            stackErrorField error2 = stackPop(spuStack, &value2);
-
-            if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
-
-            elem_t addit = value1 + value2;
-            stackPush(spuStack, addit);
+            int error = commandAdd(spu);
+            if (error) return error;
             break;
         }
         case SUB:
         {
-            elem_t subtrahend = 0, minuend = 0;
-
-            stackErrorField error1 = stackPop(spuStack, &subtrahend);
-            stackErrorField error2 = stackPop(spuStack, &minuend);
-
-            if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
-
-            elem_t subt = minuend - subtrahend;
-            stackPush(spuStack, subt);
+            int error = commandSub(spu);
+            if (error) return error;
             break;
         }
         case MUL:
         {
-            elem_t value1 = 0, value2 = 0;
-
-            stackErrorField error1 = stackPop(spuStack, &value1);
-            stackErrorField error2 = stackPop(spuStack, &value2);
-
-            if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
-
-            elem_t mult = value1 * value2 / PrecisionConst;
-            stackPush(spuStack, mult);
+            int error = commandMul(spu);
+            if (error) return error;
             break;
         }  
         case DIV:
         {
-            elem_t dividend = 0, divisor = 0;
-
-            stackErrorField error1 = stackPop(spuStack, &divisor);
-            stackErrorField error2 = stackPop(spuStack, &dividend);
-
-            if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
-            if (divisor == 0)                                     return DIVISION_BY_ZERO;
-
-            elem_t divis = (dividend * PrecisionConst) / divisor;
-            stackPush(spuStack, divis);
+            int error = commandDiv(spu);
+            if (error) return error;
             break;
         }
         case IN:
         {
-            float value = 0;
-            static int valueNumber = 0;
-
-            printf("type in value (number %d) from console: ", ++valueNumber);
-            scanf("%f", &value);
-
-            stackPush(spuStack, (elem_t)(value * PrecisionConst));
+            int error = commandIn(spu);
+            if (error) return error;
             break;
         }
         case SQRT:
         {
-            elem_t value = 0;
-
-            stackErrorField error = stackPop(spuStack, &value);
-            if (error.stack_underflow) return STACK_UNDERFLOW;
-
-            float sqRoot = sqrt((float)value / PrecisionConst);
-            stackPush(spuStack, (elem_t)(sqRoot * PrecisionConst));
+            int error = commandSqrt(spu);
+            if (error) return error;
             break;
         }
         default:
@@ -192,7 +147,132 @@ int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout)
         }
     }
 
-    STACK_DUMP(spuStack);
+    STACK_DUMP(&spu->stk);
 
+    return EXIT_SUCCESS;
+}
+
+int commandPush(Processor *spu, FILE *fin)
+{
+    assert(spu);
+
+    float value = 0;
+    if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
+
+    stackPush(&spu->stk, (elem_t)(value * PrecisionConst));
+    
+    return EXIT_SUCCESS;
+}
+
+int commandOut(Processor *spu, FILE *fout)
+{
+    assert(spu);
+
+    elem_t value = 0;
+        
+    stackErrorField error = stackPop(&spu->stk, &value);
+    if (error.stack_underflow) return STACK_UNDERFLOW;
+
+    fprintf(fout, "%f\n", (float)value / (float)PrecisionConst);
+
+    return EXIT_SUCCESS;
+}
+
+int commandAdd(Processor *spu)
+{
+    assert(spu);
+
+    elem_t value1 = 0, value2 = 0;
+
+    stackErrorField error1 = stackPop(&spu->stk, &value1);
+    stackErrorField error2 = stackPop(&spu->stk, &value2);
+
+    if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
+
+    elem_t addit = value1 + value2;
+    stackPush(&spu->stk, addit);
+
+    return EXIT_SUCCESS;
+}
+
+int commandSub(Processor *spu)
+{
+    assert(spu);
+
+    elem_t subtrahend = 0, minuend = 0;
+
+    stackErrorField error1 = stackPop(&spu->stk, &subtrahend);
+    stackErrorField error2 = stackPop(&spu->stk, &minuend);
+
+    if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
+
+    elem_t subt = minuend - subtrahend;
+    stackPush(&spu->stk, subt);
+
+    return EXIT_SUCCESS;
+}
+
+int commandMul(Processor *spu)
+{
+    assert(spu);
+
+    elem_t value1 = 0, value2 = 0;
+
+    stackErrorField error1 = stackPop(&spu->stk, &value1);
+    stackErrorField error2 = stackPop(&spu->stk, &value2);
+
+    if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
+
+    elem_t mult = value1 * value2 / PrecisionConst;
+    stackPush(&spu->stk, mult);
+
+    return EXIT_SUCCESS;
+}
+
+int commandDiv(Processor *spu)
+{
+    assert(spu);
+
+    elem_t dividend = 0, divisor = 0;
+
+    stackErrorField error1 = stackPop(&spu->stk, &divisor);
+    stackErrorField error2 = stackPop(&spu->stk, &dividend);
+
+    if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
+    if (divisor == 0)                                     return DIVISION_BY_ZERO;
+
+    elem_t divis = (dividend * PrecisionConst) / divisor;
+    stackPush(&spu->stk, divis);
+    
+    return EXIT_SUCCESS;
+}
+
+int commandIn(Processor *spu)
+{
+    assert(spu);
+
+    float value = 0;
+    static int valueNumber = 0;
+
+    printf("type in value (number %d) from console: ", ++valueNumber);
+    if (!scanf("%f", &value)) return INCORRECT_INPUT;
+
+    stackPush(&spu->stk, (elem_t)(value * PrecisionConst));
+    
+    return EXIT_SUCCESS;
+}
+
+int commandSqrt(Processor *spu)
+{
+    assert(spu);
+
+    elem_t value = 0;
+
+    stackErrorField error = stackPop(&spu->stk, &value);
+    if (error.stack_underflow) return STACK_UNDERFLOW;
+
+    float sqRoot = sqrt((float)value / PrecisionConst);
+    stackPush(&spu->stk, (elem_t)(sqRoot * PrecisionConst));
+    
     return EXIT_SUCCESS;
 }

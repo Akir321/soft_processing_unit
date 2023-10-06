@@ -16,6 +16,7 @@ enum spuErrors
     UNKNOWN_COMMAND  = 3,
     DIVISION_BY_ZERO = 4,
     FILE_ERROR       = 5,
+    INCORRECT_INPUT  = 6
 };
 
 enum commands
@@ -44,6 +45,15 @@ int spuDump (Processor *spu, const char *file, int line, const char *function);
 
 int runSPU(Processor *spu, FILE *fin, FILE *fout);
 
-int processCommand(int command, stack *spuStack, FILE *fin, FILE *fout);
+int processCommand(int command, Processor *spu, FILE *fin, FILE *fout);
+
+int commandPush(Processor *spu, FILE *fin);
+int commandOut (Processor *spu, FILE *fout);
+int commandAdd (Processor *spu);
+int commandSub (Processor *spu);
+int commandMul (Processor *spu);
+int commandDiv (Processor *spu);
+int commandIn  (Processor *spu);
+int commandSqrt(Processor *spu);
 
 #endif //__SPU_H__
