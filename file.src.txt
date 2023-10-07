@@ -16,4 +16,10 @@ push 3.000000
 div
 sqrt
 pop rbx
+push 13.000000
+pop rax
+push rbx
+push rax
+mul
+out
 hlc

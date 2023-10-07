@@ -21,9 +21,22 @@ int runAssembler(FILE *fin, FILE *fout)
         if (strcmp(command, "push") == 0)
         {
             float value = 0;
-            if (fscanf(fin, "%f", &value) == 0) return INCORRECT_PUSH;
+            char reg[MaxCommandLength] = {};
+            if (fscanf(fin, "%f", &value))
+            {
+                fprintf(fout, "%d %f\n", PUSH, value);
+            }
+            else if (fscanf(fin, "%s", reg))
+            {
+                int regNumber = getRegisterNumber(reg);
+                if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
 
-            fprintf(fout, "%d %f\n", PUSH, value);
+                fprintf(fout, "%d %d\n", PUSH_R, regNumber);
+            }
+            else 
+            {
+                return INCORRECT_PUSH;
+            }
         }
         else if (strcmp(command, "in")   == 0)
         {

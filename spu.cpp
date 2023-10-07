@@ -98,6 +98,12 @@ int processCommand(int command, Processor *spu, FILE *fin, FILE *fout)
             if (error) return error;
             break;
         }
+        case PUSH_R:
+        {
+            int error = commandPushR(spu, fin);
+            if (error) return error;
+            break;
+        }
         case OUT:
         {
             int error = commandOut(spu, fout);
@@ -180,7 +186,7 @@ int commandOut(Processor *spu, FILE *fout)
     stackErrorField error = stackPop(&spu->stk, &value);
     if (error.stack_underflow) return STACK_UNDERFLOW;
 
-    fprintf(fout, "%f\n", (float)value / (float)PrecisionConst);
+    fprintf(fout, PrecisionFormat "\n", (float)value / (float)PrecisionConst);
 
     return EXIT_SUCCESS;
 }
@@ -298,6 +304,19 @@ int commandPop(Processor *spu, FILE *fin)
 
     if (regNumber < 0 || regNumber >= RegistersNumber) return INCORREST_POP;
     spu->registers[regNumber] = value;
+
+    return EXIT_SUCCESS;
+}
+
+int commandPushR(Processor *spu, FILE *fin)
+{
+    assert(spu);
+
+    int regNumber = -1;
+    if (!fscanf(fin, "%d", &regNumber))                return INCORECT_PUSH;
+
+    if (regNumber < 0 || regNumber >= RegistersNumber) return INCORECT_PUSH;
+    stackPush(&spu->stk, spu->registers[regNumber]); 
 
     return EXIT_SUCCESS;
 }

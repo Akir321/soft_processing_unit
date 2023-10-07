@@ -7,6 +7,7 @@
 #include "stack.h"
 
 const int PrecisionConst   = 100;
+#define PrecisionFormat "%.2f"
 
 enum spuErrors
 {
@@ -34,14 +35,15 @@ int runSPU(Processor *spu, FILE *fin, FILE *fout);
 
 int processCommand(int command, Processor *spu, FILE *fin, FILE *fout);
 
-int commandPush(Processor *spu, FILE *fin);
-int commandOut (Processor *spu, FILE *fout);
-int commandAdd (Processor *spu);
-int commandSub (Processor *spu);
-int commandMul (Processor *spu);
-int commandDiv (Processor *spu);
-int commandIn  (Processor *spu);
-int commandSqrt(Processor *spu);
-int commandPop (Processor *spu, FILE *fin);
+int commandPush (Processor *spu, FILE *fin);
+int commandOut  (Processor *spu, FILE *fout);
+int commandAdd  (Processor *spu);
+int commandSub  (Processor *spu);
+int commandMul  (Processor *spu);
+int commandDiv  (Processor *spu);
+int commandIn   (Processor *spu);
+int commandSqrt (Processor *spu);
+int commandPop  (Processor *spu, FILE *fin);
+int commandPushR(Processor *spu, FILE *fin);
 
 #endif //__SPU_H__

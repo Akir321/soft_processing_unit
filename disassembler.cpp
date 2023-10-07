@@ -21,9 +21,17 @@ int runDisassembler(FILE *fin, FILE *fout)
         if (command == PUSH)
         {
             float value = 0;
-            if (fscanf(fin, "%f", &value) == 0) return INCORRECT_PUSH;
+            if (!fscanf(fin, "%f", &value)) return INCORRECT_PUSH;
 
             fprintf(fout, "%s %f\n", "push", value);
+        }
+        else if (command == PUSH_R)
+        {
+            int regNumber = -1;
+            if (!fscanf(fin, "%d", &regNumber)) return INCORRECT_PUSH;
+
+            if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
+            fprintf(fout, "%s r%cx\n", "push", regNumber + 'a');
         }
         else if (command == IN)
         {
