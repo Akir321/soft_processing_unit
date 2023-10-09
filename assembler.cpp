@@ -13,6 +13,9 @@ int runAssembler(FILE *fin, FILE *fout)
     assert(fin);
     assert(fout);
 
+    fprintf(fout, "%s\n", Signature);
+    fprintf(fout, "%d\n", CommandVersion);
+
     char command[MaxCommandLength] = {};
     fscanf(fin, "%s", command);
 

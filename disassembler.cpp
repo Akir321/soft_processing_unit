@@ -13,6 +13,9 @@ int runDisassembler(FILE *fin, FILE *fout)
     assert(fin);
     assert(fout);
 
+    if (checkSignature (fin)) return BAD_SIGNATURE;
+    if (checkComVersion(fin)) return BAD_COM_VERSION;
+
     int command = 0;
     fscanf(fin, "%d", &command);
 
@@ -113,4 +116,28 @@ void pointToZero(char *str)
     while(str[i] != '.' && str[i] != '\0') { i++; }
 
     str[i] = '\0';
+}
+
+int checkSignature(FILE *fin)
+{
+    assert(fin);
+
+    char fileSignature[5] = {};
+
+    fscanf(fin, "%5s", fileSignature);
+    if (strcmp(fileSignature, Signature) != 0) return BAD_SIGNATURE;
+
+    return EXIT_SUCCESS;
+}
+
+int checkComVersion(FILE *fin)
+{
+    assert(fin);
+
+    int fileComVersion = 0;
+
+    fscanf(fin, "%d", &fileComVersion);
+    if (fileComVersion != CommandVersion) return BAD_COM_VERSION;
+
+    return EXIT_SUCCESS;
 }

@@ -320,3 +320,35 @@ int commandPushR(Processor *spu, FILE *fin)
 
     return EXIT_SUCCESS;
 }
+
+int checkSignature(FILE *fin)
+{
+    assert(fin);
+
+    char fileSignature[5] = {};
+
+    fscanf(fin, "%5s", fileSignature);
+    if (strcmp(fileSignature, Signature) != 0) 
+    {
+        printf("file Signature = <%s>, my Signature = <%s>\n", fileSignature, Signature);
+        return BAD_SIGNATURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int checkComVersion(FILE *fin)
+{
+    assert(fin);
+
+    int fileComVersion = 0;
+
+    fscanf(fin, "%d", &fileComVersion);
+    if (fileComVersion != CommandVersion) 
+    {
+        printf("file ComVersion = %d, my CommandVersion = %d\n", fileComVersion, CommandVersion);
+        return BAD_COM_VERSION;
+    }
+
+    return EXIT_SUCCESS;
+}

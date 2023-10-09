@@ -4,6 +4,8 @@
 const int MaxCommandLength = 16;
 const int RegistersNumber  = 4;
 
+const char * const Signature = "will";
+
 enum commands
 {
     HLC    = -1,

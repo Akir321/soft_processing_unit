@@ -1,6 +1,8 @@
 #ifndef  __ASSEMBLER_H__
 #define  __ASSEMBLER_H__
 
+const int CommandVersion = 2;
+
 enum assemErrors
 {
     NO_OUT_NAME     = 1,

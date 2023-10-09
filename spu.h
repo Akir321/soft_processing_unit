@@ -9,6 +9,8 @@
 const int PrecisionConst   = 100;
 #define PrecisionFormat "%.2f"
 
+const int CommandVersion = 2;
+
 enum spuErrors
 {
     STACK_UNDERFLOW  = 1,
@@ -17,7 +19,9 @@ enum spuErrors
     DIVISION_BY_ZERO = 4,
     FILE_ERROR       = 5,
     INCORRECT_INPUT  = 6,
-    INCORREST_POP    = 7
+    INCORREST_POP    = 7,
+    BAD_SIGNATURE    = 8,
+    BAD_COM_VERSION  = 9
 };
 
 struct Processor
@@ -34,6 +38,9 @@ int spuDump (Processor *spu, const char *file, int line, const char *function);
 int runSPU(Processor *spu, FILE *fin, FILE *fout);
 
 int processCommand(int command, Processor *spu, FILE *fin, FILE *fout);
+
+int checkSignature(FILE *fin);
+int checkComVersion(FILE *fin);
 
 int commandPush (Processor *spu, FILE *fin);
 int commandOut  (Processor *spu, FILE *fout);
