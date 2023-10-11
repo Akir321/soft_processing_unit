@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "spu.h"
 
 int main(int argc, const char *argv[])
@@ -15,14 +16,18 @@ int main(int argc, const char *argv[])
     Processor spu = {};
     spuCtor(&spu, 4);
 
-    if (checkSignature (fin)) return BAD_SIGNATURE;
-    if (checkComVersion(fin)) return BAD_COM_VERSION;
+    int *bufIn = NULL;
+    size_t bufSize = 0;
+    
+    int error = loadProgramBin(&bufIn, &bufSize, fin);
+    if (error) { printf("ERROR: %d\n", error); return error; }
 
-    int error = runSPU(&spu, fin, fout);
+    error = runSPU(&spu, bufIn, fout);
     if (error) { printf("ERROR: %d\n", error); return error; }
 
     spuDump(&spu, __FILE__, __LINE__, __func__);
 
+    free(bufIn);
     spuDtor(&spu);
     fclose(fin);
     fclose(fout);

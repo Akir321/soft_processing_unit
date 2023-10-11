@@ -62,45 +62,61 @@ int spuDump(Processor *spu, const char *file, int line, const char *function)
     return EXIT_SUCCESS;
 }
 
-int runSPU(Processor *spu, FILE *fin, FILE *fout)
+int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin)
+{
+    assert(bufIn);
+    assert(fin);
+
+    if (checkSignature(fin))  return BAD_SIGNATURE;
+
+    if (checkComVersion(fin)) return BAD_COM_VERSION;
+
+
+    fread((void *)bufSize, sizeof(bufSize), 1, fin);
+
+    *bufIn = (int *)calloc(*bufSize, sizeof(int));
+    if (!*bufIn) { perror("loadProgramBin"); return MEMORY_ERROR; } 
+
+    fread((void *)(*bufIn), sizeof(int), *bufSize, fin);
+
+    return EXIT_SUCCESS;
+}
+
+int runSPU(Processor *spu, int *bufIn, FILE *fout)
 {
     assert(spu);
-    assert(fin);
+    assert(bufIn);
     assert(fout);
-    assert(fin != fout);
 
-    int command = 0;
-    fscanf(fin, "%d", &command);
-
-    while (command != HLC)
+    while (*bufIn != HLC)
     {
-        int error = processCommand(command, spu, fin, fout);
+        int error = processCommand(spu, &bufIn, fout);
         if (error) return error;
 
-        fscanf(fin, "%d", &command);
+        bufIn++;
     }
 
     return EXIT_SUCCESS;
 }
 
-int processCommand(int command, Processor *spu, FILE *fin, FILE *fout)
+int processCommand(Processor *spu, int **bufIn, FILE *fout)
 {
     assert(spu);
-    assert(fin);
     assert(fout);
-    assert(fin != fout);
+    assert(bufIn);
+    assert(*bufIn);
 
-    switch(command)
+    switch(**bufIn)
     {
         case PUSH:
         {
-            int error = commandPush(spu, fin);
+            int error = commandPush(spu, bufIn);
             if (error) return error;
             break;
         }
         case PUSH_R:
         {
-            int error = commandPushR(spu, fin);
+            int error = commandPushR(spu, bufIn);
             if (error) return error;
             break;
         }
@@ -148,13 +164,13 @@ int processCommand(int command, Processor *spu, FILE *fin, FILE *fout)
         }
         case POP:
         {
-            int error = commandPop(spu, fin);
+            int error = commandPop(spu, bufIn);
             if (error) return error;
             break;
         }
         default:
         {
-            fprintf(fout, "ERROR: unknown command: %d\n", command);
+            fprintf(fout, "ERROR: unknown command: %d\n", **bufIn);
             return UNKNOWN_COMMAND;
             break;
         }
@@ -165,14 +181,12 @@ int processCommand(int command, Processor *spu, FILE *fin, FILE *fout)
     return EXIT_SUCCESS;
 }
 
-int commandPush(Processor *spu, FILE *fin)
+int commandPush(Processor *spu, int **bufIn)
 {
     assert(spu);
 
-    float value = 0;
-    if (fscanf(fin, "%f", &value) == 0) return INCORECT_PUSH;
-
-    stackPush(&spu->stk, (elem_t)(value * PrecisionConst));
+    (*bufIn)++;
+    stackPush(&spu->stk, (elem_t)(**bufIn));
     
     return EXIT_SUCCESS;
 }
@@ -290,7 +304,7 @@ int commandSqrt(Processor *spu)
     return EXIT_SUCCESS;
 }
 
-int commandPop(Processor *spu, FILE *fin)
+int commandPop(Processor *spu, int **bufIn)
 {
     assert(spu);
 
@@ -299,8 +313,8 @@ int commandPop(Processor *spu, FILE *fin)
     stackErrorField error = stackPop(&spu->stk, &value);
     if (error.stack_underflow) return STACK_UNDERFLOW;
 
-    int regNumber = -1;
-    if (!fscanf(fin, "%d", &regNumber))                return INCORREST_POP;
+    (*bufIn)++;
+    int regNumber = **bufIn;
 
     if (regNumber < 0 || regNumber >= RegistersNumber) return INCORREST_POP;
     spu->registers[regNumber] = value;
@@ -308,12 +322,12 @@ int commandPop(Processor *spu, FILE *fin)
     return EXIT_SUCCESS;
 }
 
-int commandPushR(Processor *spu, FILE *fin)
+int commandPushR(Processor *spu, int **bufIn)
 {
     assert(spu);
 
-    int regNumber = -1;
-    if (!fscanf(fin, "%d", &regNumber))                return INCORECT_PUSH;
+    (*bufIn)++;
+    int regNumber = **bufIn;
 
     if (regNumber < 0 || regNumber >= RegistersNumber) return INCORECT_PUSH;
     stackPush(&spu->stk, spu->registers[regNumber]); 
@@ -325,12 +339,12 @@ int checkSignature(FILE *fin)
 {
     assert(fin);
 
-    char fileSignature[5] = {};
+    int fileSignature = 0;
+    fread((void *)&fileSignature, sizeof(fileSignature), 1, fin);
 
-    fscanf(fin, "%5s", fileSignature);
-    if (strcmp(fileSignature, Signature) != 0) 
+    if (fileSignature != *(const int *)Signature)  
     {
-        printf("file Signature = <%s>, my Signature = <%s>\n", fileSignature, Signature);
+        printf("file Signature = <%4s>, my Signature = <%s>\n", (char *)&fileSignature, Signature);
         return BAD_SIGNATURE;
     }
 
@@ -342,8 +356,8 @@ int checkComVersion(FILE *fin)
     assert(fin);
 
     int fileComVersion = 0;
+    fread((void *)&fileComVersion, sizeof(fileComVersion), 1, fin);
 
-    fscanf(fin, "%d", &fileComVersion);
     if (fileComVersion != CommandVersion) 
     {
         printf("file ComVersion = %d, my CommandVersion = %d\n", fileComVersion, CommandVersion);

@@ -113,14 +113,11 @@ int runAssembler(textArray *textIn, FILE *fout, int **bufOut)
 
     FILE *foutbin = fopen("file.bin", "wb");
 
-    printf("%lld\n", fwrite((const void *) Signature,      sizeof(char), 4,        foutbin));
-    fflush(foutbin);
-    printf("%lld\n", fwrite((const void *)&CommandVersion, sizeof(int),  1,        foutbin));
-    fflush(foutbin);
-    printf("%lld\n", fwrite((const void *)&position,       sizeof(int),  1,        foutbin));
-    fflush(foutbin);
+    printf("%lld\n", fwrite((const void *) Signature,      sizeof(char),    4,        foutbin));
+    printf("%lld\n", fwrite((const void *)&CommandVersion, sizeof(int),     1,        foutbin));
+    printf("%lld\n", fwrite((const void *)&position,       sizeof(size_t),  1,        foutbin));
+    
     printf("%lld\n", fwrite((const void *)*bufOut,         sizeof(int),  position, foutbin));
-    fflush(foutbin);
 
     fclose(foutbin);
 

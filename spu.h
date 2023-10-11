@@ -18,7 +18,8 @@ enum spuErrors
     INCORRECT_INPUT  = 6,
     INCORREST_POP    = 7,
     BAD_SIGNATURE    = 8,
-    BAD_COM_VERSION  = 9
+    BAD_COM_VERSION  = 9,
+    MEMORY_ERROR     = 10
 };
 
 struct Processor
@@ -32,14 +33,16 @@ int spuDtor (Processor *spu);
 int spuError(Processor *spu);
 int spuDump (Processor *spu, const char *file, int line, const char *function);
 
-int runSPU(Processor *spu, FILE *fin, FILE *fout);
+int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin);
 
-int processCommand(int command, Processor *spu, FILE *fin, FILE *fout);
+int runSPU(Processor *spu, int *bufIn, FILE *fout);
+
+int processCommand(Processor *spu, int **bufIn, FILE *fout);
 
 int checkSignature(FILE *fin);
 int checkComVersion(FILE *fin);
 
-int commandPush (Processor *spu, FILE *fin);
+int commandPush (Processor *spu, int **bufIn);
 int commandOut  (Processor *spu, FILE *fout);
 int commandAdd  (Processor *spu);
 int commandSub  (Processor *spu);
@@ -47,7 +50,7 @@ int commandMul  (Processor *spu);
 int commandDiv  (Processor *spu);
 int commandIn   (Processor *spu);
 int commandSqrt (Processor *spu);
-int commandPop  (Processor *spu, FILE *fin);
-int commandPushR(Processor *spu, FILE *fin);
+int commandPop(Processor *spu, int **bufIn);
+int commandPushR(Processor *spu, int **bufIn);
 
 #endif //__SPU_H__
