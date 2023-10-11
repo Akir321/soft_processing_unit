@@ -6,6 +6,9 @@ const int RegistersNumber  = 4;
 
 const char * const Signature = "will";
 
+const int PrecisionConst   = 100;
+#define PrecisionFormat "%.2f"
+
 enum commands
 {
     HLC    = -1,

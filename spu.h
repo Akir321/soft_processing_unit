@@ -6,9 +6,6 @@
 #include "commands.h"
 #include "stack.h"
 
-const int PrecisionConst   = 100;
-#define PrecisionFormat "%.2f"
-
 const int CommandVersion = 2;
 
 enum spuErrors

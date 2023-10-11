@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "assembler.h"
+#include "io.h"
 
 int main(int argc, const char *argv[])
 {
@@ -14,16 +16,19 @@ int main(int argc, const char *argv[])
 
     processArgv(argc, argv, &fileInName, &fileOutName);
 
-    FILE *fin  = fopen (fileInName,  "r");
-    if (!fin)  { perror(fileInName); return 0; }
+    textArray textIn = {};
+    if (readTextFromFile(fileInName, &textIn)) { perror(fileInName); return 0; }
 
     FILE *fout = fopen (fileOutName, "w");
     if (!fout) { perror(fileInName); return 0; }
 
-    int error = runAssembler(fin, fout);
-    if (error)
-    {
-        printf("ERROR: %d\n", error);
-        return error;
-    }
+    int *bufOut = NULL;
+
+    int error = runAssembler(&textIn, fout, &bufOut);
+    if (bufOut) free(bufOut); 
+
+    destroyTextArray(&textIn);
+    fclose(fout);
+
+    if (error) { printf("ERROR: %d\n", error); return error; }
 }

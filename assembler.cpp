@@ -1,40 +1,51 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "assembler.h"
 #include "commands.h"
+#include "io.h"
 
 const int          NameAddSymbolsLen = 9;
 const char * const NameAddSymbols = ".byte.txt";
 
-int runAssembler(FILE *fin, FILE *fout)
+int runAssembler(textArray *textIn, FILE *fout, int **bufOut)
 {
-    assert(fin);
+    assert(textIn);
+    assert(textIn->buffer);
+    assert(textIn->strings);
     assert(fout);
 
-    fprintf(fout, "%s\n", Signature);
-    fprintf(fout, "%d\n", CommandVersion);
+    *bufOut = (int *)calloc(textIn->nLines * maxValuesOnLine, sizeof(int));
 
+    size_t line = 0;
+    size_t position = 0;
+    
     char command[MaxCommandLength] = {};
-    fscanf(fin, "%s", command);
+    sscanf(textIn->strings[line].str, "%16s", command);
 
-    while (strcmp(command, "hlc"))
+    while (strcmp(command, "hlc") != 0)
     {
+        printf("%s\n", textIn->strings[line].str);
+        //printf("%s\n", command);
         if (strcmp(command, "push") == 0)
         {
             float value = 0;
             char reg[MaxCommandLength] = {};
-            if (fscanf(fin, "%f", &value))
+
+            if (sscanf(textIn->strings[line].str, "%16s %f", command, &value) == 2)
             {
-                fprintf(fout, "%d %f\n", PUSH, value);
+                writeToArr(*bufOut, &position, PUSH);
+                writeToArr(*bufOut, &position, (int)(value * PrecisionConst));
             }
-            else if (fscanf(fin, "%s", reg))
+            else if (sscanf(textIn->strings[line].str, "%16s %16s", command, reg) == 2)
             {
                 int regNumber = getRegisterNumber(reg);
                 if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
 
-                fprintf(fout, "%d %d\n", PUSH_R, regNumber);
+                writeToArr(*bufOut, &position, PUSH_R);
+                writeToArr(*bufOut, &position, regNumber);
             }
             else 
             {
@@ -43,52 +54,76 @@ int runAssembler(FILE *fin, FILE *fout)
         }
         else if (strcmp(command, "in")   == 0)
         {
-            fprintf(fout, "%d\n", IN);
+            writeToArr(*bufOut, &position, IN);
         }
         else if (strcmp(command, "out")  == 0)
         {
-            fprintf(fout, "%d\n", OUT);
+            writeToArr(*bufOut, &position, OUT);
         }
         else if (strcmp(command, "add")  == 0)
         {
-            fprintf(fout, "%d\n", ADD);
+            writeToArr(*bufOut, &position, ADD);
         }
         else if (strcmp(command, "sub")  == 0)
         {
-            fprintf(fout, "%d\n", SUB);
+            writeToArr(*bufOut, &position, SUB);
         }
         else if (strcmp(command, "mul")  == 0)
         {
-            fprintf(fout, "%d\n", MUL);
+            writeToArr(*bufOut, &position, MUL);
         }
         else if (strcmp(command, "div")  == 0)
         {
-            fprintf(fout, "%d\n", DIV);
+            writeToArr(*bufOut, &position, DIV);
         }
         else if (strcmp(command, "sqrt") == 0)
         {
-            fprintf(fout, "%d\n", SQRT);
+            writeToArr(*bufOut, &position, SQRT);
         }
         else if (strcmp(command, "pop")  == 0)
         {
             char reg[MaxCommandLength] = {};
-            if (!fscanf(fin, "%16s", reg)) return INCORRECT_POP;
+            if (!sscanf(textIn->strings[line].str, "%16s %16s", command, reg)) return INCORRECT_POP;
 
             int registerNumber = getRegisterNumber(reg);
             if (registerNumber == -1)      return INCORRECT_POP;
 
-            fprintf(fout, "%d %d\n", POP, registerNumber);
+            writeToArr(*bufOut, &position, POP);
+            writeToArr(*bufOut, &position, registerNumber);
         }
         else
         {
-            fprintf(fout, "ERROR: unknown command: %s\n", command);
+            printf("ERROR: line %lld: unknown command: %s\n", line, textIn->strings[line].str);
             return UNKNOWN_COMMAND;
         }
-                
-        if(!fscanf(fin, "%s", command)) break;
+       
+        sscanf(textIn->strings[++line].str, "%16s", command);
     }
 
-    fprintf(fout, "%d", HLC);
+    writeToArr(*bufOut, &position, HLC);
+
+    fprintf(fout, "%d\n", *(const int *)Signature);
+    fprintf(fout, "%d\n", CommandVersion);
+    fprintf(fout, "%lld\n", position);
+
+    for (size_t i = 0; i < position; i++)
+    {
+        fprintf(fout, "%d\n", (*bufOut)[i]);
+    }
+
+    FILE *foutbin = fopen("file.bin", "wb");
+
+    printf("%lld\n", fwrite((const void *) Signature,      sizeof(char), 4,        foutbin));
+    fflush(foutbin);
+    printf("%lld\n", fwrite((const void *)&CommandVersion, sizeof(int),  1,        foutbin));
+    fflush(foutbin);
+    printf("%lld\n", fwrite((const void *)&position,       sizeof(int),  1,        foutbin));
+    fflush(foutbin);
+    printf("%lld\n", fwrite((const void *)*bufOut,         sizeof(int),  position, foutbin));
+    fflush(foutbin);
+
+    fclose(foutbin);
+
     return EXIT_SUCCESS;
 }
 
@@ -98,7 +133,7 @@ int processArgv(int argC, const char *argV[], const char **fileInName, char **fi
     assert(fileInName);
     assert(fileOutName);
 
-    if (argC == 1) return 1;
+    if (argC == 1) return EXIT_FAILURE;
 
     *fileInName  = argV[1];
 
@@ -137,4 +172,12 @@ int getRegisterNumber(const char *reg)
     if (number < 0 || number >= RegistersNumber) return -1;
 
     return number;
+}
+
+void writeToArr(int *array, size_t *position, int value)
+{
+    assert(array);
+    assert(position);
+    
+    array[(*position)++] = value;
 }
