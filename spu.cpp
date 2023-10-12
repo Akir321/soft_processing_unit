@@ -316,7 +316,7 @@ int commandPop(Processor *spu, int **bufIn)
     (*bufIn)++;
     int regNumber = **bufIn;
 
-    if (regNumber < 0 || regNumber >= RegistersNumber) return INCORREST_POP;
+    if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_POP;
     spu->registers[regNumber] = value;
 
     return EXIT_SUCCESS;
@@ -329,7 +329,7 @@ int commandPushR(Processor *spu, int **bufIn)
     (*bufIn)++;
     int regNumber = **bufIn;
 
-    if (regNumber < 0 || regNumber >= RegistersNumber) return INCORECT_PUSH;
+    if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
     stackPush(&spu->stk, spu->registers[regNumber]); 
 
     return EXIT_SUCCESS;

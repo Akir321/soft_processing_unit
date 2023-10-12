@@ -10,16 +10,16 @@ const int CommandVersion = 3;
 
 enum spuErrors
 {
-    STACK_UNDERFLOW  = 1,
-    INCORECT_PUSH    = 2,
-    UNKNOWN_COMMAND  = 3,
-    DIVISION_BY_ZERO = 4,
-    FILE_ERROR       = 5,
-    INCORRECT_INPUT  = 6,
-    INCORREST_POP    = 7,
-    BAD_SIGNATURE    = 8,
-    BAD_COM_VERSION  = 9,
-    MEMORY_ERROR     = 10
+    STACK_UNDERFLOW   = 1,
+    INCORRECT_PUSH    = 2,
+    UNKNOWN_COMMAND   = 3,
+    DIVISION_BY_ZERO  = 4,
+    FILE_ERROR        = 5,
+    INCORRECT_INPUT   = 6,
+    INCORRECT_POP     = 7,
+    BAD_SIGNATURE     = 8,
+    BAD_COM_VERSION   = 9,
+    MEMORY_ERROR      = 10
 };
 
 struct Processor
