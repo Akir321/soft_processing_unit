@@ -14,60 +14,76 @@ int runDisassembler(int *bufIn, FILE *fout)
     assert(fout);
 
     while (*bufIn != HLC)
-    {
-        if (*bufIn == PUSH)
+    {   
+        switch (*bufIn)
         {
-            bufIn++;
-            fprintf(fout, "%s " PrecisionFormat "\n", "push", (double)(*bufIn) / PrecisionConst);
-        }
-        else if (*bufIn == PUSH_R)
-        {
-            bufIn++;
-            int regNumber = *bufIn;
+            case PUSH:
+            {
+                bufIn++;
+                fprintf(fout, "%s " PrecisionFormat "\n", "push", (double)(*bufIn) / PrecisionConst);
 
-            if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
-            fprintf(fout, "%s r%cx\n", "push", regNumber + 'a');
-        }
-        else if (*bufIn == IN)
-        {
-            fprintf(fout, "%s\n", "in");
-        }
-        else if(*bufIn == OUT)
-        {
-            fprintf(fout, "%s\n", "out");
-        }
-        else if(*bufIn == ADD)
-        {
-            fprintf(fout, "%s\n", "add");
-        }
-        else if(*bufIn == SUB)
-        {
-            fprintf(fout, "%s\n", "sub");
-        }
-        else if(*bufIn == MUL)
-        {
-            fprintf(fout, "%s\n", "mul");
-        }
-        else if(*bufIn == DIV)
-        {
-            fprintf(fout, "%s\n", "div");
-        }
-        else if(*bufIn == SQRT)
-        {
-            fprintf(fout, "%s\n", "sqrt");
-        }
-        else if (*bufIn == POP)
-        {
-            bufIn++;
-            int regNumber  = *bufIn;
+                break;
+            }
+            case PUSH_R:
+            {
+                bufIn++;
+                int regNumber = *bufIn;
 
-            if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_POP;
-            fprintf(fout, "%s r%cx\n", "pop", regNumber + 'a');
-        }
-        else
-        {
-            printf("ERROR: unknown command: %d\n", *bufIn);
-            return UNKNOWN_COMMAND;
+                if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
+                fprintf(fout, "%s r%cx\n", "push", regNumber + 'a');
+
+                break;
+            }
+            case IN:
+            {
+                fprintf(fout, "%s\n", "in");
+                break;
+            }
+            case OUT:
+            {
+                fprintf(fout, "%s\n", "out");
+                break;
+            }
+            case ADD:
+            {
+                fprintf(fout, "%s\n", "add");
+                break;
+            }
+            case SUB:
+            {
+                fprintf(fout, "%s\n", "sub");
+                break;
+            }
+            case MUL:
+            {
+                fprintf(fout, "%s\n", "mul");
+                break;
+            }
+            case DIV:
+            {
+                fprintf(fout, "%s\n", "div");
+                break;
+            }
+            case SQRT:
+            {
+                fprintf(fout, "%s\n", "sqrt");
+                break;
+            }
+            case POP:
+            {
+                bufIn++;
+                int regNumber  = *bufIn;
+
+                if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_POP;
+                fprintf(fout, "%s r%cx\n", "pop", regNumber + 'a');
+
+                break;
+            }
+            default:
+            {
+                printf("ERROR: unknown command: %d\n", *bufIn);
+                return UNKNOWN_COMMAND;
+            }
         }
                 
         bufIn++;

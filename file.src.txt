@@ -1,22 +1,22 @@
-push 2.000000
+push 2.00
 sqrt
-push 3.000000
+push 3.00
 sqrt
 mul
 out
-push 20.000000
-push 9.000000
+push 20.00
+push 9.00
 sub
-push 9.000000
+push 9.00
 sqrt
 mul
 out
 in
-push 3.000000
+push 3.00
 div
 sqrt
 pop rbx
-push 13.000000
+push 13.00
 pop rax
 push rbx
 push rax
