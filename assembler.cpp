@@ -7,15 +7,15 @@
 #include "commands.h"
 #include "io.h"
 
-const int          NameAddSymbolsLen = 9;
-const char * const NameAddSymbols = ".byte.txt";
+const int          NameAddSymbolsLen = 4;
+const char * const NameAddSymbols = ".bin";
 
-int runAssembler(textArray *textIn, FILE *fout, int **bufOut)
+int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut)
 {
     assert(textIn);
     assert(textIn->buffer);
     assert(textIn->strings);
-    assert(fout);
+    assert(foutbin);
 
     *bufOut = (int *)calloc(textIn->nLines * maxValuesOnLine, sizeof(int));
 
@@ -102,6 +102,7 @@ int runAssembler(textArray *textIn, FILE *fout, int **bufOut)
 
     writeToArr(*bufOut, &position, HLC);
 
+    /*
     fprintf(fout, "%d\n", *(const int *)Signature);
     fprintf(fout, "%d\n", CommandVersion);
     fprintf(fout, "%lld\n", position);
@@ -112,12 +113,13 @@ int runAssembler(textArray *textIn, FILE *fout, int **bufOut)
     }
 
     FILE *foutbin = fopen("file.bin", "wb");
+    */
 
     printf("%lld\n", fwrite((const void *) Signature,      sizeof(char),    4,        foutbin));
     printf("%lld\n", fwrite((const void *)&CommandVersion, sizeof(int),     1,        foutbin));
     printf("%lld\n", fwrite((const void *)&position,       sizeof(size_t),  1,        foutbin));
     
-    printf("%lld\n", fwrite((const void *)*bufOut,         sizeof(int),  position, foutbin));
+    printf("%lld\n", fwrite((const void *)*bufOut,         sizeof(int),     position, foutbin));
 
     fclose(foutbin);
 
