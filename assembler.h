@@ -3,7 +3,7 @@
 
 #include "io.h"
 
-const int CommandVersion  = 2;
+const int CommandVersion  = 3;
 const int maxValuesOnLine = 2;
 
 enum assemErrors

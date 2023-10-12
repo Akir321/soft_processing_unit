@@ -1,7 +1,7 @@
 #ifndef  __DISASSEMBLER_H__
 #define  __DISASSEMBLER_H__
 
-const int CommandVersion = 2;
+const int CommandVersion = 3;
 
 enum assemErrors
 {

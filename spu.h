@@ -6,7 +6,7 @@
 #include "commands.h"
 #include "stack.h"
 
-const int CommandVersion = 2;
+const int CommandVersion = 3;
 
 enum spuErrors
 {
