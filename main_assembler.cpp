@@ -24,7 +24,7 @@ int main(int argc, const char *argv[])
 
     int *bufOut = NULL;
 
-    int error = runAssembler(&textIn, fout, &bufOut);
+    int error = runAssembler(&textIn, fout, &bufOut, fileInName);
     if (bufOut) free(bufOut); 
 
     destroyTextArray(&textIn);

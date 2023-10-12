@@ -16,7 +16,7 @@ enum assemErrors
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName);
 
-int runAssembler(textArray *textIn, FILE *fout, int **bufOut);
+int runAssembler(textArray *textIn, FILE *fout, int **bufOut, const char *fileName);
 
 void pointToZero(char *str);
 

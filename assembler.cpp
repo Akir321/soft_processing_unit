@@ -10,7 +10,7 @@
 const int          NameAddSymbolsLen = 4;
 const char * const NameAddSymbols = ".bin";
 
-int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut)
+int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fileName)
 {
     assert(textIn);
     assert(textIn->buffer);
@@ -42,13 +42,20 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut)
             else if (sscanf(textIn->strings[line].str, "%16s %16s", command, reg) == 2)
             {
                 int regNumber = getRegisterNumber(reg);
-                if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
+                if (regNumber < 0 || regNumber >= RegistersNumber) 
+                {
+                    printf("%s(%lld): error: incorrect register name: %s\n", fileName, line + 1, reg);
+                    printf("|    <%s>\n", textIn->strings[line].str);
+                    return INCORRECT_PUSH;
+                }
 
                 writeToArr(*bufOut, &position, PUSH_R);
                 writeToArr(*bufOut, &position, regNumber);
             }
             else 
             {
+                printf("%s(%lld): error: no argument for push given\n", fileName, line + 1);
+                printf("|    <%s>\n", textIn->strings[line].str);
                 return INCORRECT_PUSH;
             }
         }
@@ -83,17 +90,28 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut)
         else if (strcmp(command, "pop")  == 0)
         {
             char reg[MaxCommandLength] = {};
-            if (!sscanf(textIn->strings[line].str, "%16s %16s", command, reg)) return INCORRECT_POP;
+            if (sscanf(textIn->strings[line].str, "%16s %16s", command, reg) != 2) 
+            {
+                printf("%s(%lld): error: no argument for pop given\n", fileName, line + 1);
+                printf("|    <%s>\n", textIn->strings[line].str);
+                return INCORRECT_POP;
+            }
 
             int registerNumber = getRegisterNumber(reg);
-            if (registerNumber == -1)      return INCORRECT_POP;
+            if (registerNumber == -1) 
+            {
+                printf("%s(%lld): error: incorrect register name: %s\n", fileName, line + 1, reg);
+                printf("|    <%s>\n", textIn->strings[line].str);
+                return INCORRECT_POP;
+            }
 
             writeToArr(*bufOut, &position, POP);
             writeToArr(*bufOut, &position, registerNumber);
         }
         else
         {
-            printf("ERROR: line %lld: unknown command: %s\n", line, textIn->strings[line].str);
+            printf("%s(%lld): error: unknown command: %s\n", fileName, line + 1, command);
+            printf("|    <%s>\n", textIn->strings[line].str);
             return UNKNOWN_COMMAND;
         }
        
@@ -120,8 +138,6 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut)
     printf("%lld\n", fwrite((const void *)&position,       sizeof(size_t),  1,        foutbin));
     
     printf("%lld\n", fwrite((const void *)*bufOut,         sizeof(int),     position, foutbin));
-
-    fclose(foutbin);
 
     return EXIT_SUCCESS;
 }
@@ -180,3 +196,5 @@ void writeToArr(int *array, size_t *position, int value)
     
     array[(*position)++] = value;
 }
+
+
