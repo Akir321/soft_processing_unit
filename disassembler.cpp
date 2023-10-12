@@ -8,77 +8,69 @@
 static const int   NameAddSymbolsLen = 8;
 static const char *NameAddSymbols = ".src.txt";
 
-int runDisassembler(FILE *fin, FILE *fout)
+int runDisassembler(int *bufIn, FILE *fout)
 {
-    assert(fin);
+    assert(bufIn);
     assert(fout);
 
-    if (checkSignature (fin)) return BAD_SIGNATURE;
-    if (checkComVersion(fin)) return BAD_COM_VERSION;
-
-    int command = 0;
-    fscanf(fin, "%d", &command);
-
-    while (command != HLC)
+    while (*bufIn != HLC)
     {
-        if (command == PUSH)
+        if (*bufIn == PUSH)
         {
-            float value = 0;
-            if (!fscanf(fin, "%f", &value)) return INCORRECT_PUSH;
-
-            fprintf(fout, "%s %f\n", "push", value);
+            bufIn++;
+            fprintf(fout, "%s " PrecisionFormat "\n", "push", (double)(*bufIn) / PrecisionConst);
         }
-        else if (command == PUSH_R)
+        else if (*bufIn == PUSH_R)
         {
-            int regNumber = -1;
-            if (!fscanf(fin, "%d", &regNumber)) return INCORRECT_PUSH;
+            bufIn++;
+            int regNumber = *bufIn;
 
             if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
             fprintf(fout, "%s r%cx\n", "push", regNumber + 'a');
         }
-        else if (command == IN)
+        else if (*bufIn == IN)
         {
             fprintf(fout, "%s\n", "in");
         }
-        else if(command == OUT)
+        else if(*bufIn == OUT)
         {
             fprintf(fout, "%s\n", "out");
         }
-        else if(command == ADD)
+        else if(*bufIn == ADD)
         {
             fprintf(fout, "%s\n", "add");
         }
-        else if(command == SUB)
+        else if(*bufIn == SUB)
         {
             fprintf(fout, "%s\n", "sub");
         }
-        else if(command == MUL)
+        else if(*bufIn == MUL)
         {
             fprintf(fout, "%s\n", "mul");
         }
-        else if(command == DIV)
+        else if(*bufIn == DIV)
         {
             fprintf(fout, "%s\n", "div");
         }
-        else if(command == SQRT)
+        else if(*bufIn == SQRT)
         {
             fprintf(fout, "%s\n", "sqrt");
         }
-        else if (command == POP)
+        else if (*bufIn == POP)
         {
-            int regNumber  = -1;
-            if (!fscanf(fin, "%d", &regNumber))                 return INCORRECT_POP;
+            bufIn++;
+            int regNumber  = *bufIn;
 
             if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_POP;
             fprintf(fout, "%s r%cx\n", "pop", regNumber + 'a');
         }
         else
         {
-            fprintf(fout, "ERROR: unknown command: %d\n", command);
+            printf("ERROR: unknown command: %d\n", *bufIn);
             return UNKNOWN_COMMAND;
         }
                 
-        if(!fscanf(fin, "%d", &command)) break;
+        bufIn++;
     }
 
     fprintf(fout, "%s", "hlc");
@@ -122,10 +114,14 @@ int checkSignature(FILE *fin)
 {
     assert(fin);
 
-    char fileSignature[5] = {};
+    int fileSignature = 0;
+    fread((void *)&fileSignature, sizeof(fileSignature), 1, fin);
 
-    fscanf(fin, "%5s", fileSignature);
-    if (strcmp(fileSignature, Signature) != 0) return BAD_SIGNATURE;
+    if (fileSignature != *(const int *)Signature)  
+    {
+        printf("file Signature = <%4s>, my Signature = <%s>\n", (char *)&fileSignature, Signature);
+        return BAD_SIGNATURE;
+    }
 
     return EXIT_SUCCESS;
 }
@@ -135,9 +131,33 @@ int checkComVersion(FILE *fin)
     assert(fin);
 
     int fileComVersion = 0;
+    fread((void *)&fileComVersion, sizeof(fileComVersion), 1, fin);
 
-    fscanf(fin, "%d", &fileComVersion);
-    if (fileComVersion != CommandVersion) return BAD_COM_VERSION;
+    if (fileComVersion != CommandVersion) 
+    {
+        printf("file ComVersion = %d, my CommandVersion = %d\n", fileComVersion, CommandVersion);
+        return BAD_COM_VERSION;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin)
+{
+    assert(bufIn);
+    assert(fin);
+
+    if (checkSignature(fin))  return BAD_SIGNATURE;
+
+    if (checkComVersion(fin)) return BAD_COM_VERSION;
+
+
+    fread((void *)bufSize, sizeof(bufSize), 1, fin);
+
+    *bufIn = (int *)calloc(*bufSize, sizeof(int));
+    if (!*bufIn) { perror("loadProgramBin"); return MEMORY_ERROR; } 
+
+    fread((void *)(*bufIn), sizeof(int), *bufSize, fin);
 
     return EXIT_SUCCESS;
 }

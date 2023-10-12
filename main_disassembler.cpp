@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "disassembler.h"
 
 int main(int argc, const char *argv[])
@@ -14,16 +15,24 @@ int main(int argc, const char *argv[])
 
     processArgv(argc, argv, &fileInName, &fileOutName);
 
-    FILE *fin  = fopen (fileInName,  "r");
+    FILE *fin  = fopen (fileInName,  "rb");
     if (!fin)  { perror(fileInName); return 0; }
+
+    int *bufIn = NULL;
+    size_t bufSize = 0;
+
+    int error = loadProgramBin(&bufIn, &bufSize, fin);
+    if (error) { printf("ERROR: %d\n", error); return error; }
 
     FILE *fout = fopen (fileOutName, "w");
     if (!fout) { perror(fileInName); return 0; }
 
-    int error = runDisassembler(fin, fout);
+    error = runDisassembler(bufIn, fout);
     if (error)
     {
         printf("ERROR: %d\n", error);
         return error;
     }
+
+    free(bufIn);
 }

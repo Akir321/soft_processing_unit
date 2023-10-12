@@ -10,12 +10,15 @@ enum assemErrors
     UNKNOWN_COMMAND = 3,
     INCORRECT_POP   = 4,
     BAD_SIGNATURE   = 5,
-    BAD_COM_VERSION = 6
+    BAD_COM_VERSION = 6,
+    MEMORY_ERROR    = 7
 };
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName);
 
-int runDisassembler(FILE *fin, FILE *fout);
+int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin);
+
+int runDisassembler(int *bufIn, FILE *fout);
 
 void pointToZero(char *str);
 
