@@ -4,6 +4,7 @@
 
 #include "disassembler.h"
 #include "commands.h"
+#include "errors.h"
 
 static const int   NameAddSymbolsLen = 8;
 static const char *NameAddSymbols = ".src.txt";
@@ -68,6 +69,34 @@ int runDisassembler(int *bufIn, FILE *fout)
             {
                 fprintf(fout, "%s\n", "sqrt");
                 break;
+            }
+            case SIN:
+            {
+                fprintf(fout, "%s\n", "sin");
+                break;
+            }
+            case COS:
+            {
+                fprintf(fout, "%s\n", "cos");
+                break;
+            }
+            case TAN:
+            {
+                fprintf(fout, "%s\n", "tan");
+                break;
+            }
+            case COT:
+            {
+                fprintf(fout, "%s\n", "cot");
+                break;
+            }
+            case MEOW:
+            {
+                fprintf(fout, "%s\n", "meow");
+            }
+            case WMEOW:
+            {
+                fprintf(fout, "%s\n", "wmeow");
             }
             case POP:
             {

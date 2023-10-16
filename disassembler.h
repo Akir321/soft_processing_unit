@@ -1,9 +1,9 @@
 #ifndef  __DISASSEMBLER_H__
 #define  __DISASSEMBLER_H__
 
-const int CommandVersion = 3;
+const int CommandVersion = 4;
 
-enum assemErrors
+/*enum assemErrors
 {
     NO_OUT_NAME     = 1,
     INCORRECT_PUSH  = 2,
@@ -12,7 +12,7 @@ enum assemErrors
     BAD_SIGNATURE   = 5,
     BAD_COM_VERSION = 6,
     MEMORY_ERROR    = 7
-};
+};*/
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName);
 

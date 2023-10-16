@@ -34,8 +34,8 @@ struct textArray
  */
 enum errors
 {
-    FILE_ERROR = 1,
-    MEMORY_ERROR = 2
+    FILE_ONEGIN_ERROR = 1,
+    MEMORY_ONEGIN_ERROR = 2
 };
 
 /**

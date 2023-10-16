@@ -21,7 +21,13 @@ enum commands
     DIV    =  6,
     SQRT   =  7,
     POP    =  8,
-    PUSH_R = 33
+    PUSH_R = 33,
+    SIN    =  9,
+    COS    = 10,
+    TAN    = 11,
+    COT    = 12,
+    MEOW   = 13,
+    WMEOW  = 14
 };
 
 #endif //__COMMANDS_H__

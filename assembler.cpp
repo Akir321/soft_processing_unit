@@ -5,6 +5,7 @@
 
 #include "assembler.h"
 #include "commands.h"
+#include "errors.h"
 #include "io.h"
 
 const int          NameAddSymbolsLen = 4;
@@ -86,6 +87,30 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
         else if (strcmp(command, "sqrt") == 0)
         {
             writeToArr(*bufOut, &position, SQRT);
+        }
+        else if (strcmp(command, "sin") == 0)
+        {
+            writeToArr(*bufOut, &position, SIN);
+        }
+        else if (strcmp(command, "cos") == 0)
+        {
+            writeToArr(*bufOut, &position, COS);
+        }
+        else if (strcmp(command, "tan") == 0)
+        {
+            writeToArr(*bufOut, &position, TAN);
+        }
+        else if (strcmp(command, "cot") == 0)
+        {
+            writeToArr(*bufOut, &position, COT);
+        }
+        else if (strcmp(command, "meow") == 0)
+        {
+            writeToArr(*bufOut, &position, MEOW);
+        }
+        else if (strcmp(command, "wmeow") == 0)
+        {
+            writeToArr(*bufOut, &position, WMEOW);
         }
         else if (strcmp(command, "pop")  == 0)
         {

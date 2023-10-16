@@ -3,16 +3,8 @@
 
 #include "io.h"
 
-const int CommandVersion  = 3;
+const int CommandVersion  = 4;
 const int maxValuesOnLine = 2;
-
-enum assemErrors
-{
-    NO_OUT_NAME     = 1,
-    INCORRECT_PUSH  = 2,
-    UNKNOWN_COMMAND = 3,
-    INCORRECT_POP   = 4
-};
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName);
 

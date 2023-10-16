@@ -6,21 +6,8 @@
 #include "commands.h"
 #include "stack.h"
 
-const int CommandVersion = 3;
-
-enum spuErrors
-{
-    STACK_UNDERFLOW   = 1,
-    INCORRECT_PUSH    = 2,
-    UNKNOWN_COMMAND   = 3,
-    DIVISION_BY_ZERO  = 4,
-    FILE_ERROR        = 5,
-    INCORRECT_INPUT   = 6,
-    INCORRECT_POP     = 7,
-    BAD_SIGNATURE     = 8,
-    BAD_COM_VERSION   = 9,
-    MEMORY_ERROR      = 10
-};
+const int    CommandVersion = 4;
+const double ComparisonPrecision = 0.000001;
 
 struct Processor
 {
@@ -42,15 +29,18 @@ int processCommand(Processor *spu, int **bufIn, FILE *fout);
 int checkSignature(FILE *fin);
 int checkComVersion(FILE *fin);
 
-int commandPush (Processor *spu, int **bufIn);
-int commandOut  (Processor *spu, FILE *fout);
-int commandAdd  (Processor *spu);
-int commandSub  (Processor *spu);
-int commandMul  (Processor *spu);
-int commandDiv  (Processor *spu);
-int commandIn   (Processor *spu);
-int commandSqrt (Processor *spu);
-int commandPop(Processor *spu, int **bufIn);
-int commandPushR(Processor *spu, int **bufIn);
+int commandPush    (Processor *spu, int **bufIn);
+int commandOut     (Processor *spu, FILE *fout);
+int commandArithm  (Processor *spu, int command);
+int commandTrigonom(Processor *spu, int command);
+int commandIn      (Processor *spu);
+int commandSqrt    (Processor *spu);
+int commandPop     (Processor *spu, int **bufIn);
+int commandPushR   (Processor *spu, int **bufIn);
+
+int commandMeow     (FILE *fout);
+int commandWeirdMeow(FILE *fout);
+
+bool isZero(float a);
 
 #endif //__SPU_H__

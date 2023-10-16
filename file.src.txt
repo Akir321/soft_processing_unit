@@ -22,4 +22,7 @@ push rbx
 push rax
 mul
 out
+push rax
+sin
+out
 hlc

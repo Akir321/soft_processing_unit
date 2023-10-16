@@ -13,7 +13,7 @@ int readTextFromFile(const char *fileName, textArray *text)
     if (!text->size)  
     { 
         perror("ERROR");
-        return FILE_ERROR; 
+        return FILE_ONEGIN_ERROR; 
     }
     //printf("size = %lld\n", text->size);
 
@@ -21,14 +21,14 @@ int readTextFromFile(const char *fileName, textArray *text)
     if (!f)      
     { 
         perror("ERROR"); 
-        return FILE_ERROR; 
+        return FILE_ONEGIN_ERROR; 
     }
 
     text->buffer = readToBuffer(f, text->size);
     if (!text->buffer) 
     { 
         perror("ERROR"); 
-        return MEMORY_ERROR; 
+        return MEMORY_ONEGIN_ERROR; 
     }
     fclose(f);
 
@@ -38,7 +38,7 @@ int readTextFromFile(const char *fileName, textArray *text)
     if (!text->strings) 
     { 
         perror("ERROR"); 
-        return MEMORY_ERROR; 
+        return MEMORY_ONEGIN_ERROR; 
     }
 
     return 0;
@@ -92,7 +92,7 @@ int splitBufToStrings(textArray *text)
 
     if (text->strings == NULL)
     {
-        return MEMORY_ERROR;
+        return MEMORY_ONEGIN_ERROR;
     }
 
     text->strings++->str = text->buffer;

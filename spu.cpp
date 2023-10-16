@@ -5,6 +5,7 @@
 
 #include "spu.h"
 #include "commands.h"
+#include "errors.h"
 #include "stack.h"
 
 int spuCtor(Processor *spu, size_t stackCapacity)
@@ -106,66 +107,58 @@ int processCommand(Processor *spu, int **bufIn, FILE *fout)
     assert(bufIn);
     assert(*bufIn);
 
+    int error = 0;
+
     switch(**bufIn)
     {
         case PUSH:
         {
-            int error = commandPush(spu, bufIn);
-            if (error) return error;
+            error = commandPush(spu, bufIn);
             break;
         }
         case PUSH_R:
         {
-            int error = commandPushR(spu, bufIn);
-            if (error) return error;
+            error = commandPushR(spu, bufIn);
             break;
         }
         case OUT:
         {
-            int error = commandOut(spu, fout);
-            if (error) return error;
+            error = commandOut(spu, fout);
             break;
         }
-        case ADD:
+        case ADD: case SUB: case MUL: case DIV:
         {
-            int error = commandAdd(spu);
-            if (error) return error;
+            error = commandArithm(spu, **bufIn);
             break;
         }
-        case SUB:
+        case SIN: case COS: case TAN: case COT:
         {
-            int error = commandSub(spu);
-            if (error) return error;
-            break;
-        }
-        case MUL:
-        {
-            int error = commandMul(spu);
-            if (error) return error;
-            break;
-        }  
-        case DIV:
-        {
-            int error = commandDiv(spu);
-            if (error) return error;
+            error = commandTrigonom(spu, **bufIn);
             break;
         }
         case IN:
         {
-            int error = commandIn(spu);
-            if (error) return error;
+            error = commandIn(spu);
             break;
         }
         case SQRT:
         {
-            int error = commandSqrt(spu);
-            if (error) return error;
+            error = commandSqrt(spu);
             break;
         }
         case POP:
         {
-            int error = commandPop(spu, bufIn);
-            if (error) return error;
+            error = commandPop(spu, bufIn);
+            break;
+        }
+        case MEOW:
+        {
+            error = commandMeow(fout);
+            break;
+        }
+        case WMEOW:
+        {
+            error = commandWeirdMeow(fout);
             break;
         }
         default:
@@ -175,6 +168,7 @@ int processCommand(Processor *spu, int **bufIn, FILE *fout)
             break;
         }
     }
+    if (error) return error;
 
     STACK_DUMP(&spu->stk);
 
@@ -205,7 +199,7 @@ int commandOut(Processor *spu, FILE *fout)
     return EXIT_SUCCESS;
 }
 
-int commandAdd(Processor *spu)
+int commandArithm(Processor *spu, int command)
 {
     assert(spu);
 
@@ -216,61 +210,29 @@ int commandAdd(Processor *spu)
 
     if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
 
-    elem_t addit = value1 + value2;
-    stackPush(&spu->stk, addit);
-
-    return EXIT_SUCCESS;
-}
-
-int commandSub(Processor *spu)
-{
-    assert(spu);
-
-    elem_t subtrahend = 0, minuend = 0;
-
-    stackErrorField error1 = stackPop(&spu->stk, &subtrahend);
-    stackErrorField error2 = stackPop(&spu->stk, &minuend);
-
-    if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
-
-    elem_t subt = minuend - subtrahend;
-    stackPush(&spu->stk, subt);
-
-    return EXIT_SUCCESS;
-}
-
-int commandMul(Processor *spu)
-{
-    assert(spu);
-
-    elem_t value1 = 0, value2 = 0;
-
-    stackErrorField error1 = stackPop(&spu->stk, &value1);
-    stackErrorField error2 = stackPop(&spu->stk, &value2);
-
-    if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
-
-    elem_t mult = value1 * value2 / PrecisionConst;
-    stackPush(&spu->stk, mult);
-
-    return EXIT_SUCCESS;
-}
-
-int commandDiv(Processor *spu)
-{
-    assert(spu);
-
-    elem_t dividend = 0, divisor = 0;
-
-    stackErrorField error1 = stackPop(&spu->stk, &divisor);
-    stackErrorField error2 = stackPop(&spu->stk, &dividend);
-
-    if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;
-    if (divisor == 0)                                     return DIVISION_BY_ZERO;
-
-    elem_t divis = (dividend * PrecisionConst) / divisor;
-    stackPush(&spu->stk, divis);
+    elem_t result = 0;
     
+    switch(command)
+    {
+        case(ADD):
+            result = value2 + value1;
+            break;
+        case(SUB):
+            result = value2 - value1;
+            break;
+        case(MUL):
+            result = (value2 * value1) / PrecisionConst;
+            break;
+        case(DIV):
+            if (value1 == 0) return DIVISION_BY_ZERO;
+            result = (value2 * PrecisionConst) / value1;
+            break;
+        default:
+            return UNKNOWN_COMMAND;
+            break;
+    }
+    stackPush(&spu->stk, result);
+
     return EXIT_SUCCESS;
 }
 
@@ -335,6 +297,85 @@ int commandPushR(Processor *spu, int **bufIn)
     return EXIT_SUCCESS;
 }
 
+int commandTrigonom(Processor *spu, int command)
+{
+    assert(spu);
+
+    elem_t value = 0;
+
+    stackErrorField error = stackPop(&spu->stk, &value);
+    if (error.stack_underflow) return STACK_UNDERFLOW;
+
+    float result = 0;
+
+    switch(command)
+    {
+        case SIN:
+            result = sin((float)value / PrecisionConst);
+            break;
+        case COS:
+            result = cos((float)value / PrecisionConst);
+            break;
+        case TAN:
+            if (isZero(cos((float)value / PrecisionConst))) return DIVISION_BY_ZERO;
+            result = tan((float)value / PrecisionConst);
+            break;
+        case COT:
+            if (isZero(sin((float)value / PrecisionConst))) return DIVISION_BY_ZERO;
+            result = 1 / tan((float)value / PrecisionConst);
+            break;
+        default:
+            return UNKNOWN_COMMAND;
+            break;
+    }
+    stackPush(&spu->stk, (elem_t)(result * PrecisionConst));
+    
+    return EXIT_SUCCESS;
+}
+
+int commandWeirdMeow(FILE *fout)
+{
+    assert(fout);
+
+    fprintf(fout, "               .\'\\   /`.                 \n");
+    fprintf(fout, "            .\'.-.`-\'.-.`.                \n");
+    fprintf(fout, "       ..._:   .-. .-.   :_...             \n");
+    fprintf(fout, "    .\'    \'-.(o ) (o ).-\'    `.         \n");
+    fprintf(fout, "    :  _    _ _`~(_)~`_ _    _  :          \n");
+    fprintf(fout, "    :  /:   \' .-=_   _=-. `   ;\\  :      \n");
+    fprintf(fout, "    :   :|-.._  \'     `  _..-|:   :       \n");
+    fprintf(fout, "    :   `:| |`:-:-.-:-:\'| |:\'   :        \n");
+    fprintf(fout, "    `.   `.| | | | | | |.\'   .\'          \n");
+    fprintf(fout, "      `.   `-:_| | |_:-\'   .\'            \n");
+    fprintf(fout, "        `-._   ````    _.-\'               \n");
+    fprintf(fout, "            ``-------\'\'                  \n");
+
+    return EXIT_SUCCESS;
+}
+
+int commandMeow(FILE *fout)
+{
+    assert(fout);
+
+    fprintf(fout, "         _                        \n");    
+    fprintf(fout, "     \\`*-.                       \n");
+    fprintf(fout, "      )  _`-.                     \n");
+    fprintf(fout, "     .  : `. .                    \n");
+    fprintf(fout, "     : _   \'  \\                 \n");
+    fprintf(fout, "     ; *` _.   `*-._              \n");
+    fprintf(fout, "     `-.-\'          `-.          \n");
+    fprintf(fout, "       ;       `       `.         \n");
+    fprintf(fout, "       :.       .        \\       \n");
+    fprintf(fout, "       . \\  .   :   .-\'   .     \n");
+    fprintf(fout, "       \'  `+.;  ;  \'      :     \n");
+    fprintf(fout, "       :  \'  |    ;       ;-.    \n");
+    fprintf(fout, "       ; \'   : :`-:     _.`* ;   \n");
+    fprintf(fout, "    .*\' /  .*\' ; .*`- +\'  `*\' \n");
+    fprintf(fout, "    `*-*   `*-*  `*-*\'           \n");
+
+    return EXIT_SUCCESS;
+}
+
 int checkSignature(FILE *fin)
 {
     assert(fin);
@@ -365,4 +406,10 @@ int checkComVersion(FILE *fin)
     }
 
     return EXIT_SUCCESS;
+}
+
+bool isZero(float a)
+{
+    if (fabs(a) < ComparisonPrecision) return true;
+    return false;
 }
