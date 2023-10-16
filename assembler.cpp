@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "assembler.h"
-#include "commands.h"
+#include "cmd_enum.h"
 #include "errors.h"
 #include "io.h"
 

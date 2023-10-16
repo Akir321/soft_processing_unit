@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "disassembler.h"
-#include "commands.h"
+#include "cmd_enum.h"
 #include "errors.h"
 
 static const int   NameAddSymbolsLen = 8;

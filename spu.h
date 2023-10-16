@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "commands.h"
+#include "cmd_enum.h"
 #include "stack.h"
 
 const int    CommandVersion = 4;

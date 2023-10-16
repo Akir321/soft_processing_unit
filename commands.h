@@ -1,33 +1,33 @@
-#ifndef  __COMMANDS_H__
-#define  __COMMANDS_H__
+DEF_CMD(HLC,    -1)
 
-const int MaxCommandLength = 16;
-const int RegistersNumber  = 4;
+DEF_CMD(PUSH,    0)
 
-const char * const Signature = "will";
+DEF_CMD(IN,      1)
 
-const int PrecisionConst   = 100;
-#define PrecisionFormat "%.2f"
+DEF_CMD(OUT,     2)
 
-enum commands
-{
-    HLC    = -1,
-    PUSH   =  0,
-    IN     =  1,
-    OUT    =  2,
-    ADD    =  3,
-    SUB    =  4,
-    MUL    =  5,
-    DIV    =  6,
-    SQRT   =  7,
-    POP    =  8,
-    PUSH_R = 33,
-    SIN    =  9,
-    COS    = 10,
-    TAN    = 11,
-    COT    = 12,
-    MEOW   = 13,
-    WMEOW  = 14
-};
+DEF_CMD(ADD,     3)
 
-#endif //__COMMANDS_H__
+DEF_CMD(SUB,     4)
+
+DEF_CMD(MUL,     5)
+
+DEF_CMD(DIV,     6)
+
+DEF_CMD(SQRT,    7)
+
+DEF_CMD(POP,     8)
+
+DEF_CMD(PUSH_R, 33)
+
+DEF_CMD(SIN,     9)
+
+DEF_CMD(COS,    10)
+
+DEF_CMD(TAN,    11)
+
+DEF_CMD(COT,    12)
+
+DEF_CMD(MEOW,   13)
+
+DEF_CMD(WMEOW,  14)

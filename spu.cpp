@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include "spu.h"
-#include "commands.h"
+#include "cmd_enum.h"
 #include "errors.h"
 #include "stack.h"
 
