@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
 
 #include "assembler.h"
@@ -10,6 +11,26 @@
 
 const int          NameAddSymbolsLen = 4;
 const char * const NameAddSymbols = ".bin";
+
+#define DEF_CMD(name, num, hasArg)                                                                     \
+                                                                                                       \
+        if (myStrCmpNoCase(command, #name) == 0)                                                               \
+        {                                                                                              \
+            int arg = 0, argType = 0;                                                                  \
+            if (hasArg)                                                                                \
+            {                                                                                          \
+                int error = getArgument(textIn->strings[line].str, &arg, &argType);                    \
+                if (error)                                                                             \
+                {                                                                                      \
+                    getArgumentPrintError(argType, textIn->strings[line].str,   fileName, line + 1);   \
+                    return INCORRECT_ARGUMENT;                                                         \
+                }                                                                                      \
+            }                                                                                          \
+                                                                                                       \
+            writeToArr(*bufOut, &position, num | argType);                                             \
+            if (hasArg) writeToArr(*bufOut, &position, arg);                                           \
+        }                                                                                              \
+        else                                             
 
 int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fileName)
 {
@@ -30,86 +51,9 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
     {
         printf("%s\n", textIn->strings[line].str);
         //printf("%s\n", command);
-        if (strcmp(command, "push") == 0)
-        {
-            int arg = 0, argType = 0;
-            int error = getArgument(textIn->strings[line].str, &arg, &argType);
-            if (error) 
-            {
-                getArgumentPrintError(argType, textIn->strings[line].str,   fileName, line + 1);
-                return INCORRECT_PUSH;
-            }
-
-            writeToArr(*bufOut, &position, PUSH | argType);
-            writeToArr(*bufOut, &position, arg);
-        }
-        else if (strcmp(command, "in")   == 0)
-        {
-            writeToArr(*bufOut, &position, IN);
-        }
-        else if (strcmp(command, "out")  == 0)
-        {
-            writeToArr(*bufOut, &position, OUT);
-        }
-        else if (strcmp(command, "add")  == 0)
-        {
-            writeToArr(*bufOut, &position, ADD);
-        }
-        else if (strcmp(command, "sub")  == 0)
-        {
-            writeToArr(*bufOut, &position, SUB);
-        }
-        else if (strcmp(command, "mul")  == 0)
-        {
-            writeToArr(*bufOut, &position, MUL);
-        }
-        else if (strcmp(command, "div")  == 0)
-        {
-            writeToArr(*bufOut, &position, DIV);
-        }
-        else if (strcmp(command, "sqrt") == 0)
-        {
-            writeToArr(*bufOut, &position, SQRT);
-        }
-        else if (strcmp(command, "sin") == 0)
-        {
-            writeToArr(*bufOut, &position, SIN);
-        }
-        else if (strcmp(command, "cos") == 0)
-        {
-            writeToArr(*bufOut, &position, COS);
-        }
-        else if (strcmp(command, "tan") == 0)
-        {
-            writeToArr(*bufOut, &position, TAN);
-        }
-        else if (strcmp(command, "cot") == 0)
-        {
-            writeToArr(*bufOut, &position, COT);
-        }
-        else if (strcmp(command, "meow") == 0)
-        {
-            writeToArr(*bufOut, &position, MEOW);
-        }
-        else if (strcmp(command, "wmeow") == 0)
-        {
-            writeToArr(*bufOut, &position, WMEOW);
-        }
-        else if (strcmp(command, "pop")  == 0)
-        {
-            int arg = 0, argType = 0;
-            int error = getArgument(textIn->strings[line].str, &arg, &argType);
-            if (error)
-            {
-                getArgumentPrintError(argType, textIn->strings[line].str, fileName, line + 1);
-                return INCORRECT_POP;
-            }
-
-            writeToArr(*bufOut, &position, POP);
-            writeToArr(*bufOut, &position, arg);
-        }
-        else
-        {
+       
+       #include "commands.h"
+        { //else
             printf("%s(%lld): error: unknown command: %s\n", fileName, line + 1, command);
             printf("|    <%s>\n", textIn->strings[line].str);
             return UNKNOWN_COMMAND;
@@ -265,4 +209,14 @@ int getArgumentPrintError(int argType, const char *str, const char *fileName, si
     }
 
     return EXIT_SUCCESS;
+}
+
+int myStrCmpNoCase(const char *s1, const char *s2)
+{
+    assert(s1);
+    assert(s2);
+
+    for ( ; tolower(*s1) == tolower(*s2) && *s1 != '\0'; s1++, s2++) {}
+    
+    return tolower(*s1) - tolower(*s2);
 }

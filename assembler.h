@@ -3,7 +3,7 @@
 
 #include "io.h"
 
-const int CommandVersion  = 4;
+const int CommandVersion  = 5;
 const int maxValuesOnLine = 2;
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName);
@@ -18,5 +18,7 @@ void writeToArr(int *array, size_t *position, int value);
 
 int getArgument(const char *str, int *arg, int *argType);
 int getArgumentPrintError(int argType, const char *str, const char *fileName, size_t line);
+
+int myStrCmpNoCase(const char *s1, const char *s2);
 
 #endif //__ASSEMBLER_H__

@@ -9,7 +9,7 @@ const char * const Signature = "will";
 const int PrecisionConst   = 100;
 #define PrecisionFormat "%.2f"
 
-#define DEF_CMD(name, num) name = num,
+#define DEF_CMD(name, num, hasARg) name = num,
 
 enum Commands
 {
@@ -18,10 +18,10 @@ enum Commands
 
 enum ArgTypes
 {
-    ARG_TYPE_NOTHING  = 0,
-    ARG_TYPE_NUMBER   = 1,
+    ARG_TYPE_NOTHING  = -1,
+    ARG_TYPE_NUMBER   = 0,
     ARG_TYPE_REGISTER = 32,
-    ARG_TYPE_STRING   = 3
+    ARG_TYPE_STRING   = -2
 };
 
 #undef DEF_CMD
