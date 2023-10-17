@@ -32,33 +32,16 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
         //printf("%s\n", command);
         if (strcmp(command, "push") == 0)
         {
-            float value = 0;
-            char reg[MaxCommandLength] = {};
-
-            if (sscanf(textIn->strings[line].str, "%16s %f", command, &value) == 2)
+            int arg = 0, argType = 0;
+            int error = getArgument(textIn->strings[line].str, &arg, &argType);
+            if (error) 
             {
-                writeToArr(*bufOut, &position, PUSH);
-                writeToArr(*bufOut, &position, (int)(value * PrecisionConst));
-            }
-            else if (sscanf(textIn->strings[line].str, "%16s %16s", command, reg) == 2)
-            {
-                int regNumber = getRegisterNumber(reg);
-                if (regNumber < 0 || regNumber >= RegistersNumber) 
-                {
-                    printf("%s(%lld): error: incorrect register name: %s\n", fileName, line + 1, reg);
-                    printf("|    <%s>\n", textIn->strings[line].str);
-                    return INCORRECT_PUSH;
-                }
-
-                writeToArr(*bufOut, &position, PUSH_R);
-                writeToArr(*bufOut, &position, regNumber);
-            }
-            else 
-            {
-                printf("%s(%lld): error: no argument for push given\n", fileName, line + 1);
-                printf("|    <%s>\n", textIn->strings[line].str);
+                getArgumentPrintError(argType, textIn->strings[line].str,   fileName, line + 1);
                 return INCORRECT_PUSH;
             }
+
+            writeToArr(*bufOut, &position, PUSH | argType);
+            writeToArr(*bufOut, &position, arg);
         }
         else if (strcmp(command, "in")   == 0)
         {
@@ -114,24 +97,16 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
         }
         else if (strcmp(command, "pop")  == 0)
         {
-            char reg[MaxCommandLength] = {};
-            if (sscanf(textIn->strings[line].str, "%16s %16s", command, reg) != 2) 
+            int arg = 0, argType = 0;
+            int error = getArgument(textIn->strings[line].str, &arg, &argType);
+            if (error)
             {
-                printf("%s(%lld): error: no argument for pop given\n", fileName, line + 1);
-                printf("|    <%s>\n", textIn->strings[line].str);
-                return INCORRECT_POP;
-            }
-
-            int registerNumber = getRegisterNumber(reg);
-            if (registerNumber == -1) 
-            {
-                printf("%s(%lld): error: incorrect register name: %s\n", fileName, line + 1, reg);
-                printf("|    <%s>\n", textIn->strings[line].str);
+                getArgumentPrintError(argType, textIn->strings[line].str, fileName, line + 1);
                 return INCORRECT_POP;
             }
 
             writeToArr(*bufOut, &position, POP);
-            writeToArr(*bufOut, &position, registerNumber);
+            writeToArr(*bufOut, &position, arg);
         }
         else
         {
@@ -222,4 +197,72 @@ void writeToArr(int *array, size_t *position, int value)
     array[(*position)++] = value;
 }
 
+int getArgument(const char *str, int *arg, int *argType)
+{
+    assert(str);
+    assert(arg);
+    assert(argType);
 
+    char command[MaxCommandLength] = {};
+
+    float fArgument                   =  0;
+    char  sArgument[MaxCommandLength] = {};
+
+    if (sscanf(str, "%s %f", command, &fArgument) == 2)
+    {
+        *argType = ARG_TYPE_NUMBER;
+        if (strcmp(command, "push") != 0) return EXIT_FAILURE;
+
+        *arg = (int)(fArgument * PrecisionConst);
+    }
+    else if (sscanf(str, "%s %s", command, sArgument) == 2)
+    {
+        int regNumber = getRegisterNumber(sArgument);
+        if (regNumber == -1) 
+        {
+            *argType = ARG_TYPE_STRING;
+            return EXIT_FAILURE;
+        }
+
+        *argType = ARG_TYPE_REGISTER;
+        *arg = regNumber;
+    }
+    else
+    {
+        *argType = ARG_TYPE_NOTHING;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int getArgumentPrintError(int argType, const char *str, const char *fileName, size_t line)
+{
+    assert(str);
+    assert(fileName);
+
+    char command[MaxCommandLength] = {};
+    char arg[MaxCommandLength]     = {};
+    sscanf(str, "%s %s", command, arg);
+
+    switch(argType)
+    {
+        case ARG_TYPE_NOTHING:
+            printf("%s(%lld): error: no argument for %s given\n", fileName, line, command);
+            printf("|    <%s>\n", str);
+            break;
+        case ARG_TYPE_STRING:
+            printf("%s(%lld): error: incorrect register name: %s\n", fileName, line, arg);
+            printf("|    <%s>\n", str);
+            break;
+        case ARG_TYPE_NUMBER:
+            printf("%s(%lld): error: incorrect argument for %s given\n", fileName, line, command);
+            printf("|    <%s>\n", str);
+            break;
+        default:
+            printf("%d - no case for this error in getArgumentPrintError()\n", argType);
+            break;
+    }
+
+    return EXIT_SUCCESS;
+}

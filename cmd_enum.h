@@ -11,9 +11,17 @@ const int PrecisionConst   = 100;
 
 #define DEF_CMD(name, num) name = num,
 
-enum commands
+enum Commands
 {
     #include "commands.h"
+};
+
+enum ArgTypes
+{
+    ARG_TYPE_NOTHING  = 0,
+    ARG_TYPE_NUMBER   = 1,
+    ARG_TYPE_REGISTER = 32,
+    ARG_TYPE_STRING   = 3
 };
 
 #undef DEF_CMD

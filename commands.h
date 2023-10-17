@@ -16,9 +16,9 @@ DEF_CMD(DIV,     6)
 
 DEF_CMD(SQRT,    7)
 
-DEF_CMD(POP,     8)
+DEF_CMD(POP,     33)
 
-DEF_CMD(PUSH_R, 33)
+DEF_CMD(PUSH_R, 32)
 
 DEF_CMD(SIN,     9)
 
