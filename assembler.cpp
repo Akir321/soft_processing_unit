@@ -12,7 +12,7 @@
 const int          NameAddSymbolsLen = 4;
 const char * const NameAddSymbols = ".bin";
 
-#define DEF_CMD(name, num, hasArg)                                                                     \
+#define DEF_CMD(name, num, hasArg, function)                                                                     \
                                                                                                        \
         if (myStrCmpNoCase(command, #name) == 0)                                                               \
         {                                                                                              \
@@ -85,6 +85,8 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
 
     return EXIT_SUCCESS;
 }
+
+#undef DEF_CMD
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName)
 {

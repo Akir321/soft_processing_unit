@@ -6,7 +6,7 @@
 #include "cmd_enum.h"
 #include "stack.h"
 
-const int    CommandVersion = 4;
+const int    CommandVersion = 5;
 const double ComparisonPrecision = 0.000001;
 
 struct Processor

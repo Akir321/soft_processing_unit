@@ -10,7 +10,7 @@
 static const int   NameAddSymbolsLen = 8;
 static const char *NameAddSymbols = ".src.txt";
 
-#define DEF_CMD(name, num, hasArg)                                                      \
+#define DEF_CMD(name, num, hasArg, function)                                                      \
             case name:                                                                  \
             {                                                                           \
                 myFputsCommandName(#name, fout);                                        \
@@ -51,6 +51,8 @@ int runDisassembler(int *bufIn, FILE *fout)
     fprintf(fout, "%s", "hlc");
     return EXIT_SUCCESS;
 }
+
+#undef DEF_CMD
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName)
 {

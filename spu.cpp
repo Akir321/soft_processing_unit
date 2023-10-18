@@ -100,6 +100,13 @@ int runSPU(Processor *spu, int *bufIn, FILE *fout)
     return EXIT_SUCCESS;
 }
 
+#define DEF_CMD(name, num, hasArg, function)  \
+        case name:                            \
+                {                             \
+                    error = function;         \
+                    break;                    \
+                }
+
 int processCommand(Processor *spu, int **bufIn, FILE *fout)
 {
     assert(spu);
@@ -111,56 +118,7 @@ int processCommand(Processor *spu, int **bufIn, FILE *fout)
 
     switch(**bufIn)
     {
-        case PUSH:
-        {
-            error = commandPush(spu, bufIn);
-            break;
-        }
-        case PUSH_R:
-        {
-            error = commandPushR(spu, bufIn);
-            break;
-        }
-        case OUT:
-        {
-            error = commandOut(spu, fout);
-            break;
-        }
-        case ADD: case SUB: case MUL: case DIV:
-        {
-            error = commandArithm(spu, **bufIn);
-            break;
-        }
-        case SIN: case COS: case TAN: case COT:
-        {
-            error = commandTrigonom(spu, **bufIn);
-            break;
-        }
-        case IN:
-        {
-            error = commandIn(spu);
-            break;
-        }
-        case SQRT:
-        {
-            error = commandSqrt(spu);
-            break;
-        }
-        case POP:
-        {
-            error = commandPop(spu, bufIn);
-            break;
-        }
-        case MEOW:
-        {
-            error = commandMeow(fout);
-            break;
-        }
-        case WMEOW:
-        {
-            error = commandWeirdMeow(fout);
-            break;
-        }
+        #include "commands.h"
         default:
         {
             fprintf(fout, "ERROR: unknown command: %d\n", **bufIn);
