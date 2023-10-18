@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
 #include <string.h>
 
 #include "disassembler.h"
@@ -8,6 +9,24 @@
 
 static const int   NameAddSymbolsLen = 8;
 static const char *NameAddSymbols = ".src.txt";
+
+#define DEF_CMD(name, num, hasArg)                                                      \
+            case name:                                                                  \
+            {                                                                           \
+                myFputsCommandName(#name, fout);                                        \
+                fputc(' ', fout);                                                       \
+                                                                                        \
+                if (hasArg)                                                             \
+                {                                                                       \
+                    int arg = *(bufIn + 1);                                             \
+                    if (printArgument(*bufIn++, arg, fout)) return INCORRECT_ARGUMENT;  \
+                }                                                                       \
+                else fputc('\n', fout);                                                 \
+                                                                                        \
+                break;                                                                  \
+            }
+
+
 
 int runDisassembler(int *bufIn, FILE *fout)
 {
@@ -18,96 +37,7 @@ int runDisassembler(int *bufIn, FILE *fout)
     {   
         switch (*bufIn)
         {
-            case PUSH:
-            {
-                bufIn++;
-                fprintf(fout, "%s " PrecisionFormat "\n", "push", (double)(*bufIn) / PrecisionConst);
-
-                break;
-            }
-            case PUSH_R:
-            {
-                bufIn++;
-                int regNumber = *bufIn;
-
-                if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
-                fprintf(fout, "%s r%cx\n", "push", regNumber + 'a');
-
-                break;
-            }
-            case IN:
-            {
-                fprintf(fout, "%s\n", "in");
-                break;
-            }
-            case OUT:
-            {
-                fprintf(fout, "%s\n", "out");
-                break;
-            }
-            case ADD:
-            {
-                fprintf(fout, "%s\n", "add");
-                break;
-            }
-            case SUB:
-            {
-                fprintf(fout, "%s\n", "sub");
-                break;
-            }
-            case MUL:
-            {
-                fprintf(fout, "%s\n", "mul");
-                break;
-            }
-            case DIV:
-            {
-                fprintf(fout, "%s\n", "div");
-                break;
-            }
-            case SQRT:
-            {
-                fprintf(fout, "%s\n", "sqrt");
-                break;
-            }
-            case SIN:
-            {
-                fprintf(fout, "%s\n", "sin");
-                break;
-            }
-            case COS:
-            {
-                fprintf(fout, "%s\n", "cos");
-                break;
-            }
-            case TAN:
-            {
-                fprintf(fout, "%s\n", "tan");
-                break;
-            }
-            case COT:
-            {
-                fprintf(fout, "%s\n", "cot");
-                break;
-            }
-            case MEOW:
-            {
-                fprintf(fout, "%s\n", "meow");
-            }
-            case WMEOW:
-            {
-                fprintf(fout, "%s\n", "wmeow");
-            }
-            case POP:
-            {
-                bufIn++;
-                int regNumber  = *bufIn;
-
-                if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_POP;
-                fprintf(fout, "%s r%cx\n", "pop", regNumber + 'a');
-
-                break;
-            }
+            #include "commands.h"
             default:
             {
                 printf("ERROR: unknown command: %d\n", *bufIn);
@@ -203,6 +133,33 @@ int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin)
     if (!*bufIn) { perror("loadProgramBin"); return MEMORY_ERROR; } 
 
     fread((void *)(*bufIn), sizeof(int), *bufSize, fin);
+
+    return EXIT_SUCCESS;
+}
+
+int printArgument(int command, int argument, FILE *fout)
+{
+    if (command == PUSH_R || command == POP)
+    {
+        if (argument < 0 || argument >= RegistersNumber) return INCORRECT_ARGUMENT;
+        fprintf(fout, "r%cx\n", argument + 'a');
+    }
+    else
+    {
+        fprintf(fout, PrecisionFormat "\n", (double)(argument) / PrecisionConst);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int myFputsCommandName(const char *str, FILE *f)
+{
+    assert(str);
+
+    for ( ; *str != '\0' && *str != '_'; str++)
+    {
+        fputc(tolower(*str), f);
+    }
 
     return EXIT_SUCCESS;
 }

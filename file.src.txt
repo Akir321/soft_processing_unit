@@ -1,28 +1,30 @@
 push 2.00
-sqrt
+sqrt 
 push 3.00
-sqrt
-mul
-out
+sqrt 
+mul 
+out 
 push 20.00
 push 9.00
-sub
+sub 
 push 9.00
-sqrt
-mul
-out
-in
+sqrt 
+mul 
+out 
+in 
 push 3.00
-div
-sqrt
+div 
+sqrt 
 pop rbx
 push 13.00
 pop rax
 push rbx
 push rax
-mul
-out
+mul 
+out 
+meow 
 push rax
-sin
-out
+sin 
+out 
+wmeow 
 hlc

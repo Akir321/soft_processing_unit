@@ -1,7 +1,7 @@
 #ifndef  __DISASSEMBLER_H__
 #define  __DISASSEMBLER_H__
 
-const int CommandVersion = 4;
+const int CommandVersion = 5;
 
 /*enum assemErrors
 {
@@ -24,5 +24,9 @@ void pointToZero(char *str);
 
 int checkSignature(FILE *fin);
 int checkComVersion(FILE *fin);
+
+int printArgument(int command, int argument, FILE *fout);
+
+int myFputsCommandName(const char *str, FILE *f);
 
 #endif //__DISASSEMBLER_H__
