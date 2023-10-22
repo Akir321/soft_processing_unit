@@ -121,7 +121,7 @@ int runSPU(Processor *spu, int *bufIn, size_t bufSize, FILE *fout)
                                                                                                     \
                 if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;       \
                                                                                                     \
-                if (value1 sign value2) *instructionPointer = bufIn[*instructionPointer + 1] - 1;   \
+                if (value2 sign value1) *instructionPointer = bufIn[*instructionPointer + 1] - 1;   \
                 else (*instructionPointer)++;                                                       \
                                                                                                     \
                 break;                                                                              \

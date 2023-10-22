@@ -12,6 +12,83 @@
 const int          NameAddSymbolsLen = 4;
 const char * const NameAddSymbols = ".bin";
 
+int labelTableCtor(LabelTable *labels)
+{
+    assert(labels);
+
+    for (size_t i = 0; i < LabelsNumber; i++)
+    {
+        labels->table[i].address = -1;
+        labels->table[i].name    = NULL;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int labelTableDtor(LabelTable *labels)
+{
+    assert(labels);
+
+    for (size_t i = 0; i < LabelsNumber; i++)
+    {
+        labels->table[i].address = -1;
+
+        if (labels->table[i].name) 
+        {
+            free(labels->table[i].name);
+            labels->table[i].name = NULL;
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int labelTableAdd(LabelTable *labels, const char *name, size_t address)
+{
+    assert(labels);
+    assert(name);
+
+    if (labels->count >= LabelsNumber) return -1;
+
+    labels->table[labels->count].name = strdup(name);
+    if (!labels->table[labels->count].name) return -1;
+
+    labels->table[labels->count].address = address;
+    labels->count++;
+
+    return (int)(labels->count - 1);
+}
+
+int labelTableFind(LabelTable *labels, const char *name)
+{
+    assert(labels);
+    assert(name);
+
+    for (size_t i = 0; i < labels->count; i++)
+    {
+        if (strcmp(name, labels->table[i].name) == 0)
+        {
+            return (int)(labels->table[i].address);
+        }
+    }
+
+    return -1;
+}
+
+int labelTableDump(LabelTable *labels)
+{
+    assert(labels);
+    
+    printf("I'm LabelTable\n");
+
+    for (size_t i = 0; i < labels->count; i++)
+    {
+        printf("  [%lld] <%s> = %lld\n", i, labels->table[i].name, labels->table[i].address);
+    }
+
+    return EXIT_SUCCESS;
+}
+
 #define DEF_CMD(name, num, hasArg, function)                                                           \
                                                                                                        \
         if (myStrCmpNoCase(command, #name) == 0)                                                       \
@@ -19,7 +96,7 @@ const char * const NameAddSymbols = ".bin";
             int arg = 0, argType = 0;                                                                  \
             if (hasArg)                                                                                \
             {                                                                                          \
-                int error = getArgument(num, textIn->strings[line].str, &arg, &argType);               \
+                int error = getArgument(num, textIn->strings[line].str, &arg, &argType, labels);               \
                 if (error)                                                                             \
                 {                                                                                      \
                     getArgumentPrintError(argType, textIn->strings[line].str,   fileName, line + 1);   \
@@ -27,14 +104,15 @@ const char * const NameAddSymbols = ".bin";
                 }                                                                                      \
             }                                                                                          \
                                                                                                        \
-            writeToArr(*bufOut, &position, num | argType);                                             \
-            if (hasArg) writeToArr(*bufOut, &position, arg);                                           \
+            writeToArr(*bufOut, position, num | argType);                                             \
+            if (hasArg) writeToArr(*bufOut, position, arg);                                           \
         }                                                                                              \
         else   
 
 #define DEF_CMD_JMP(name, num, hasArg, sign) DEF_CMD(name, num, hasArg, sign)                                          
 
-int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fileName)
+int runAssembler(textArray *textIn, LabelTable *labels, FILE *foutbin, int **bufOut, size_t *position,
+                const char *fileName)
 {
     assert(textIn);
     assert(textIn->buffer);
@@ -44,7 +122,6 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
     *bufOut = (int *)calloc(textIn->nLines * maxValuesOnLine, sizeof(int));
 
     size_t line = 0;
-    size_t position = 0;
     
     char command[MaxCommandLength] = {};
     sscanf(textIn->strings[line].str, "%16s", command);
@@ -54,6 +131,14 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
         printf("%s\n", textIn->strings[line].str);
         //printf("%s\n", command);
        
+       if (command[0] == ':')
+       {
+            if (labelTableFind(labels, command + 1) == -1)
+            {
+                if (labelTableAdd(labels,  command + 1, *position) == -1) return LABEL_ADD_ERROR;
+            }
+       }
+       else
        #include "commands.h"
         { //else
             printf("%s(%lld): error: unknown command: %s\n", fileName, line + 1, command);
@@ -64,26 +149,7 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
         sscanf(textIn->strings[++line].str, "%16s", command);
     }
 
-    writeToArr(*bufOut, &position, HLC);
-
-    /*
-    fprintf(fout, "%d\n", *(const int *)Signature);
-    fprintf(fout, "%d\n", CommandVersion);
-    fprintf(fout, "%lld\n", position);
-
-    for (size_t i = 0; i < position; i++)
-    {
-        fprintf(fout, "%d\n", (*bufOut)[i]);
-    }
-
-    FILE *foutbin = fopen("file.bin", "wb");
-    */
-
-    printf("%lld\n", fwrite((const void *) Signature,      sizeof(char),    4,        foutbin));
-    printf("%lld\n", fwrite((const void *)&CommandVersion, sizeof(int),     1,        foutbin));
-    printf("%lld\n", fwrite((const void *)&position,       sizeof(size_t),  1,        foutbin));
-    
-    printf("%lld\n", fwrite((const void *)*bufOut,         sizeof(int),     position, foutbin));
+    writeToArr(*bufOut, position, HLC);
 
     return EXIT_SUCCESS;
 }
@@ -146,7 +212,7 @@ void writeToArr(int *array, size_t *position, int value)
     array[(*position)++] = value;
 }
 
-int getArgument(int comNum, const char *str, int *arg, int *argType)
+int getArgument(int comNum, const char *str, int *arg, int *argType, LabelTable *labels)
 {
     assert(str);
     assert(arg);
@@ -158,11 +224,19 @@ int getArgument(int comNum, const char *str, int *arg, int *argType)
     int   dArgument                   =  0;
     char  sArgument[MaxCommandLength] = {};
 
-    if (comNum & ARG_TYPE_ADDRESS && sscanf(str, "%s %d", command, &dArgument) == 2)
+    if (comNum & ARG_TYPE_ADDRESS)
     {
-        *argType = ARG_TYPE_ADDRESS;
-
-        *arg = dArgument;
+        if (sscanf(str, "%s %d", command, &dArgument) == 2)
+        {
+            *argType = ARG_TYPE_ADDRESS;
+            *arg     = dArgument;
+        }
+        else if (sscanf(str, "%s :%s", command, sArgument) == 2)
+        {
+            *argType = ARG_TYPE_ADDRESS;
+            *arg     = labelTableFind(labels, sArgument);
+        }
+        else return EXIT_FAILURE;
     }
     else if (sscanf(str, "%s %f", command, &fArgument) == 2)
     {
@@ -219,6 +293,32 @@ int getArgumentPrintError(int argType, const char *str, const char *fileName, si
             printf("%d - no case for this error in getArgumentPrintError()\n", argType);
             break;
     }
+
+    return EXIT_SUCCESS;
+}
+
+int writeCommandsToFile(const int *bufOut, const size_t *position, FILE *foutbin)
+{
+    assert(bufOut);
+    assert(position);
+    assert(foutbin);
+    
+    /*
+    fprintf(fout, "%d\n", *(const int *)Signature);
+    fprintf(fout, "%d\n", CommandVersion);
+    fprintf(fout, "%lld\n", position);
+
+    for (size_t i = 0; i < position; i++)
+    {
+        fprintf(fout, "%d\n", (*bufOut)[i]);
+    }
+    */
+
+    printf("%lld\n", fwrite((const void *) Signature,      sizeof(char),    4,        foutbin));
+    printf("%lld\n", fwrite((const void *)&CommandVersion, sizeof(int),     1,        foutbin));
+    printf("%lld\n", fwrite((const void *) position,       sizeof(size_t),  1,        foutbin));
+    
+    printf("%lld\n", fwrite((const void *) bufOut,         sizeof(int),     *position, foutbin));
 
     return EXIT_SUCCESS;
 }

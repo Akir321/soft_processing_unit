@@ -14,7 +14,8 @@ enum Errors
     BAD_COM_VERSION    = 9,
     MEMORY_ERROR       = 10,
     INCORRECT_ARGUMENT = 11,
-    INCORRECT_ADDRESS  = 12
+    INCORRECT_ADDRESS  = 12,
+    LABEL_ADD_ERROR    = 13
 };
 
 #endif //__ERRORS_H__

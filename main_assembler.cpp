@@ -23,12 +23,23 @@ int main(int argc, const char *argv[])
     if (!fout) { perror(fileInName); return 0; }
 
     int *bufOut = NULL;
+    size_t position = 0;
+    
+    LabelTable labels = {};
+    labelTableCtor(&labels);
 
-    int error = runAssembler(&textIn, fout, &bufOut, fileInName);
-    if (bufOut) free(bufOut); 
+    int error = runAssembler(&textIn, &labels, fout, &bufOut, &position, fileInName);
+    position = 0;
+    error     = runAssembler(&textIn, &labels, fout, &bufOut, &position, fileInName);
+
+    writeCommandsToFile(bufOut, &position, fout);
+    if (bufOut) free(bufOut);
+
+    labelTableDump(&labels);
 
     destroyTextArray(&textIn);
     fclose(fout);
+    labelTableDtor(&labels);
 
     if (error) { printf("ERROR: %d\n", error); return error; }
 }

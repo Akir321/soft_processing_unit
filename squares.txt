@@ -1,6 +1,11 @@
 push 1
 pop rax
 
+:next
+push rax
+push 10
+jae :stop
+
 push rax
 push rax
 mul
@@ -11,7 +16,7 @@ push 1
 add
 pop rax
 
-push rax
-push 10
-jae 4
+jmp :next
+
+:stop
 hlc
