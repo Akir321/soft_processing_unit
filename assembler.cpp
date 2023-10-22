@@ -12,14 +12,14 @@
 const int          NameAddSymbolsLen = 4;
 const char * const NameAddSymbols = ".bin";
 
-#define DEF_CMD(name, num, hasArg, function)                                                                     \
+#define DEF_CMD(name, num, hasArg, function)                                                           \
                                                                                                        \
-        if (myStrCmpNoCase(command, #name) == 0)                                                               \
+        if (myStrCmpNoCase(command, #name) == 0)                                                       \
         {                                                                                              \
             int arg = 0, argType = 0;                                                                  \
             if (hasArg)                                                                                \
             {                                                                                          \
-                int error = getArgument(textIn->strings[line].str, &arg, &argType);                    \
+                int error = getArgument(num, textIn->strings[line].str, &arg, &argType);               \
                 if (error)                                                                             \
                 {                                                                                      \
                     getArgumentPrintError(argType, textIn->strings[line].str,   fileName, line + 1);   \
@@ -30,7 +30,9 @@ const char * const NameAddSymbols = ".bin";
             writeToArr(*bufOut, &position, num | argType);                                             \
             if (hasArg) writeToArr(*bufOut, &position, arg);                                           \
         }                                                                                              \
-        else                                             
+        else   
+
+#define DEF_CMD_JMP(name, num, hasArg, sign) DEF_CMD(name, num, hasArg, sign)                                          
 
 int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fileName)
 {
@@ -86,6 +88,7 @@ int runAssembler(textArray *textIn, FILE *foutbin, int **bufOut, const char *fil
     return EXIT_SUCCESS;
 }
 
+#undef DEF_CMD_JMP
 #undef DEF_CMD
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName)
@@ -143,7 +146,7 @@ void writeToArr(int *array, size_t *position, int value)
     array[(*position)++] = value;
 }
 
-int getArgument(const char *str, int *arg, int *argType)
+int getArgument(int comNum, const char *str, int *arg, int *argType)
 {
     assert(str);
     assert(arg);
@@ -152,9 +155,16 @@ int getArgument(const char *str, int *arg, int *argType)
     char command[MaxCommandLength] = {};
 
     float fArgument                   =  0;
+    int   dArgument                   =  0;
     char  sArgument[MaxCommandLength] = {};
 
-    if (sscanf(str, "%s %f", command, &fArgument) == 2)
+    if (comNum & ARG_TYPE_ADDRESS && sscanf(str, "%s %d", command, &dArgument) == 2)
+    {
+        *argType = ARG_TYPE_ADDRESS;
+
+        *arg = dArgument;
+    }
+    else if (sscanf(str, "%s %f", command, &fArgument) == 2)
     {
         *argType = ARG_TYPE_NUMBER;
         if (strcmp(command, "push") != 0) return EXIT_FAILURE;

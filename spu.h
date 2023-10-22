@@ -22,21 +22,23 @@ int spuDump (Processor *spu, const char *file, int line, const char *function);
 
 int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin);
 
-int runSPU(Processor *spu, int *bufIn, FILE *fout);
+int runSPU(Processor *spu, int *bufIn, size_t bufSize, FILE *fout);
 
-int processCommand(Processor *spu, int **bufIn, FILE *fout);
+int processCommand(Processor *spu, int *bufIn, size_t *instructionPointer, FILE *fout);
 
 int checkSignature(FILE *fin);
 int checkComVersion(FILE *fin);
 
-int commandPush    (Processor *spu, int **bufIn);
+int commandPush    (Processor *spu, int *bufIn, size_t *instructionPointer);
 int commandOut     (Processor *spu, FILE *fout);
 int commandArithm  (Processor *spu, int command);
 int commandTrigonom(Processor *spu, int command);
 int commandIn      (Processor *spu);
 int commandSqrt    (Processor *spu);
-int commandPop     (Processor *spu, int **bufIn);
-int commandPushR   (Processor *spu, int **bufIn);
+int commandPop     (Processor *spu, int *bufIn, size_t *instructionPointer);
+int commandPushR   (Processor *spu, int *bufIn, size_t *instructionPointer);
+
+int commandJmp(int *bufIn, size_t *instructionPointer);
 
 int commandMeow     (FILE *fout);
 int commandWeirdMeow(FILE *fout);

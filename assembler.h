@@ -16,7 +16,7 @@ int getRegisterNumber(const char *reg);
 
 void writeToArr(int *array, size_t *position, int value);
 
-int getArgument(const char *str, int *arg, int *argType);
+int getArgument(int comNum, const char *str, int *arg, int *argType);
 int getArgumentPrintError(int argType, const char *str, const char *fileName, size_t line);
 
 int myStrCmpNoCase(const char *s1, const char *s2);

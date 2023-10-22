@@ -54,7 +54,7 @@ int spuDump(Processor *spu, const char *file, int line, const char *function)
     printf("Processor's stack:\n");
     stackDump(&spu->stk, file, line, function);
 
-    printf("Register's:\n");
+    printf("Registers:\n");
     for (int i = 0; i < RegistersNumber; i++)
     {
         printf("  r%cx = %d\n", i + 'a', spu->registers[i]);
@@ -83,18 +83,22 @@ int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin)
     return EXIT_SUCCESS;
 }
 
-int runSPU(Processor *spu, int *bufIn, FILE *fout)
+int runSPU(Processor *spu, int *bufIn, size_t bufSize, FILE *fout)
 {
     assert(spu);
     assert(bufIn);
     assert(fout);
 
-    while (*bufIn != HLC)
+    size_t instructionPointer = 0;
+
+    while (bufIn[instructionPointer] != HLC && instructionPointer < bufSize)
     {
-        int error = processCommand(spu, &bufIn, fout);
+        printf("command before entering process command = %d\n", bufIn[instructionPointer]);
+
+        int error = processCommand(spu, bufIn, &instructionPointer, fout);
         if (error) return error;
 
-        bufIn++;
+        instructionPointer++;
     }
 
     return EXIT_SUCCESS;
@@ -107,38 +111,57 @@ int runSPU(Processor *spu, int *bufIn, FILE *fout)
                     break;                    \
                 }
 
-int processCommand(Processor *spu, int **bufIn, FILE *fout)
+
+#define DEF_CMD_JMP(name, num, hasArg, sign)                                                        \
+        case name:                                                                                  \
+            {                                                                                       \
+                elem_t value1 = 0, value2 = 0;                                                      \
+                stackErrorField error1 = stackPop(&spu->stk, &value1);                              \
+                stackErrorField error2 = stackPop(&spu->stk, &value2);                              \
+                                                                                                    \
+                if (error1.stack_underflow || error2.stack_underflow) return STACK_UNDERFLOW;       \
+                                                                                                    \
+                if (value1 sign value2) *instructionPointer = bufIn[*instructionPointer + 1] - 1;   \
+                else (*instructionPointer)++;                                                       \
+                                                                                                    \
+                break;                                                                              \
+            }
+
+int processCommand(Processor *spu, int *bufIn, size_t *instructionPointer, FILE *fout)
 {
     assert(spu);
     assert(fout);
     assert(bufIn);
-    assert(*bufIn);
+    assert(instructionPointer);
 
     int error = 0;
 
-    switch(**bufIn)
+    switch(bufIn[*instructionPointer])
     {
         #include "commands.h"
         default:
         {
-            fprintf(fout, "ERROR: unknown command: %d\n", **bufIn);
+            fprintf(fout, "ERROR: unknown command: %d\n", bufIn[*instructionPointer]);
             return UNKNOWN_COMMAND;
             break;
         }
     }
-    if (error) return error;
-
     STACK_DUMP(&spu->stk);
 
-    return EXIT_SUCCESS;
+    return error;
 }
 
-int commandPush(Processor *spu, int **bufIn)
+#undef DEF_CMD
+#undef DEF_CMD_JMP
+
+int commandPush(Processor *spu, int *bufIn, size_t *instructionPointer)
 {
     assert(spu);
+    assert(bufIn);
+    assert(instructionPointer);
 
-    (*bufIn)++;
-    stackPush(&spu->stk, (elem_t)(**bufIn));
+    (*instructionPointer)++;
+    stackPush(&spu->stk, (elem_t)(bufIn[*instructionPointer]));
     
     return EXIT_SUCCESS;
 }
@@ -146,6 +169,7 @@ int commandPush(Processor *spu, int **bufIn)
 int commandOut(Processor *spu, FILE *fout)
 {
     assert(spu);
+    assert(fout);
 
     elem_t value = 0;
         
@@ -224,17 +248,19 @@ int commandSqrt(Processor *spu)
     return EXIT_SUCCESS;
 }
 
-int commandPop(Processor *spu, int **bufIn)
+int commandPop(Processor *spu, int *bufIn, size_t *instructionPointer)
 {
     assert(spu);
+    assert(bufIn);
+    assert(instructionPointer);
 
     elem_t value = 0;
 
     stackErrorField error = stackPop(&spu->stk, &value);
     if (error.stack_underflow) return STACK_UNDERFLOW;
 
-    (*bufIn)++;
-    int regNumber = **bufIn;
+    (*instructionPointer)++;
+    int regNumber = bufIn[*instructionPointer];
 
     if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_POP;
     spu->registers[regNumber] = value;
@@ -242,12 +268,14 @@ int commandPop(Processor *spu, int **bufIn)
     return EXIT_SUCCESS;
 }
 
-int commandPushR(Processor *spu, int **bufIn)
+int commandPushR(Processor *spu, int *bufIn, size_t *instructionPointer)
 {
     assert(spu);
+    assert(bufIn);
+    assert(instructionPointer);
 
-    (*bufIn)++;
-    int regNumber = **bufIn;
+    (*instructionPointer)++;
+    int regNumber = bufIn[*instructionPointer];
 
     if (regNumber < 0 || regNumber >= RegistersNumber) return INCORRECT_PUSH;
     stackPush(&spu->stk, spu->registers[regNumber]); 
@@ -288,6 +316,19 @@ int commandTrigonom(Processor *spu, int command)
     }
     stackPush(&spu->stk, (elem_t)(result * PrecisionConst));
     
+    return EXIT_SUCCESS;
+}
+
+int commandJmp(int *bufIn, size_t *instructionPointer)
+{
+    assert(bufIn);
+    assert(instructionPointer);
+
+    printf("instructionPointer = %lld\n", *instructionPointer);
+    *instructionPointer = bufIn[*instructionPointer + 1] - 1;
+    printf("instructionPointer = %lld\n", *instructionPointer);
+    printf("instructionPointer + 1 = %lld\n", *instructionPointer + 1);
+
     return EXIT_SUCCESS;
 }
 

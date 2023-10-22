@@ -4,6 +4,7 @@
 
 int main(int argc, const char *argv[])
 {
+    printf("ARG_TYPE_ADDRESS = %d\n", ARG_TYPE_ADDRESS);
 
     if (argc == 1) { printf("File name not given\n"); return 0; }
     const char *fileInName = argv[1];
@@ -22,7 +23,7 @@ int main(int argc, const char *argv[])
     int error = loadProgramBin(&bufIn, &bufSize, fin);
     if (error) { printf("ERROR: %d\n", error); return error; }
 
-    error = runSPU(&spu, bufIn, fout);
+    error = runSPU(&spu, bufIn, bufSize, fout);
     if (error) { printf("ERROR: %d\n", error); return error; }
 
     spuDump(&spu, __FILE__, __LINE__, __func__);

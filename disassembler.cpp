@@ -26,7 +26,7 @@ static const char *NameAddSymbols = ".src.txt";
                 break;                                                                  \
             }
 
-
+#define DEF_CMD_JMP(name, num, hasArg, sign) DEF_CMD(name, num, hasArg, sign)
 
 int runDisassembler(int *bufIn, FILE *fout)
 {
@@ -52,6 +52,7 @@ int runDisassembler(int *bufIn, FILE *fout)
     return EXIT_SUCCESS;
 }
 
+#undef DEF_CMD_JMP
 #undef DEF_CMD
 
 int processArgv(int argC, const char *argV[], const char **fileInName, char **fileOutName)

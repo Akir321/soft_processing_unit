@@ -13,7 +13,8 @@ enum Errors
     BAD_SIGNATURE      = 8,
     BAD_COM_VERSION    = 9,
     MEMORY_ERROR       = 10,
-    INCORRECT_ARGUMENT = 11
+    INCORRECT_ARGUMENT = 11,
+    INCORRECT_ADDRESS  = 12
 };
 
 #endif //__ERRORS_H__
