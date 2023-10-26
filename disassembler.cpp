@@ -10,7 +10,7 @@
 static const int   NameAddSymbolsLen = 8;
 static const char *NameAddSymbols = ".src.txt";
 
-#define DEF_CMD(name, num, hasArg, function)                                                      \
+#define DEF_CMD(name, num, hasArg, function)                                            \
             case name:                                                                  \
             {                                                                           \
                 myFputsCommandName(#name, fout);                                        \
@@ -21,7 +21,7 @@ static const char *NameAddSymbols = ".src.txt";
                     int arg = *(bufIn + 1);                                             \
                     if (printArgument(*bufIn++, arg, fout)) return INCORRECT_ARGUMENT;  \
                 }                                                                       \
-                else fputc('\n', fout);                                                 \
+                fputc('\n', fout);                                                      \
                                                                                         \
                 break;                                                                  \
             }
@@ -142,14 +142,18 @@ int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin)
 
 int printArgument(int command, int argument, FILE *fout)
 {
-    if (command == PUSH_R || command == POP)
+    if (command & ARG_TYPE_REGISTER)
     {
         if (argument < 0 || argument >= RegistersNumber) return INCORRECT_ARGUMENT;
-        fprintf(fout, "r%cx\n", argument + 'a');
+        fprintf(fout, "r%cx", argument + 'a');
+    }
+    else if (command & ARG_TYPE_ADDRESS)
+    {
+        fprintf(fout, "%d", argument);
     }
     else
     {
-        fprintf(fout, PrecisionFormat "\n", (double)(argument) / PrecisionConst);
+        fprintf(fout, PrecisionFormat, (double)(argument) / PrecisionConst);
     }
 
     return EXIT_SUCCESS;
