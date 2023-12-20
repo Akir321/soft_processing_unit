@@ -7,12 +7,14 @@
 #include "cmd_enum.h"
 #include "errors.h"
 #include "stack.h"
+#include "html_logfile.h"
 
 int spuCtor(Processor *spu, size_t stackCapacity)
 {
     assert(spu);
 
-    stackCtor(&spu->stk, stackCapacity);
+    stackCtor(&spu->stk,      stackCapacity);
+    stackCtor(&spu->addresses, stackCapacity);
 
     for (int i = 0; i < RegistersNumber; i++)
     {
@@ -27,6 +29,7 @@ int spuDtor(Processor *spu)
     assert(spu);
 
     stackDtor(&spu->stk);
+    stackDtor(&spu->addresses);
 
     for (int i = 0; i < RegistersNumber; i++)
     {
@@ -46,18 +49,20 @@ int spuError(Processor *spu)
     return EXIT_SUCCESS;
 }
 
-int spuDump(Processor *spu, const char *file, int line, const char *function)
+int spuDump(Processor *spu, FILE *f, const char *file, int line, const char *function)
 {
     assert(spu);
 
-    printf("I'm spuDump called from %s (%d) %s\n", function, line, file);
-    printf("Processor's stack:\n");
-    stackDump(&spu->stk, file, line, function);
+    fprintf(f, "I'm spuDump called from %s (%d) %s\n", function, line, file);
+    fprintf(f, "Processor's stack:\n");
+    stackDump(&spu->stk,       f, file, line, function);
+    fprintf(f, "Processor's adresses:\n");
+    stackDump(&spu->addresses, f, file, line, function);
 
-    printf("Registers:\n");
+    fprintf(f, "Registers:\n");
     for (int i = 0; i < RegistersNumber; i++)
     {
-        printf("  r%cx = %d\n", i + 'a', spu->registers[i]);
+        fprintf(f, "  r%cx = %d\n", i + 'a', spu->registers[i]);
     }
 
     return EXIT_SUCCESS;
@@ -80,6 +85,11 @@ int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin)
 
     fread((void *)(*bufIn), sizeof(int), *bufSize, fin);
 
+    for (size_t i = 0; i < *bufSize; i++)
+    {
+        LOG("[%lld] %d\n", i, (*bufIn)[i]);
+    }
+
     return EXIT_SUCCESS;
 }
 
@@ -91,9 +101,9 @@ int runSPU(Processor *spu, int *bufIn, size_t bufSize, FILE *fout)
 
     size_t instructionPointer = 0;
 
-    while (bufIn[instructionPointer] != HLC && instructionPointer < bufSize)
+    while (bufIn[instructionPointer] != HLT && instructionPointer < bufSize)
     {
-        printf("command before entering process command = %d\n", bufIn[instructionPointer]);
+        //printf("command before entering process command = %d\n", bufIn[instructionPointer]);
 
         int error = processCommand(spu, bufIn, &instructionPointer, fout);
         if (error) return error;
@@ -146,7 +156,11 @@ int processCommand(Processor *spu, int *bufIn, size_t *instructionPointer, FILE 
             break;
         }
     }
-    STACK_DUMP(&spu->stk);
+    //STACK_DUMP(&spu->stk,       LogFile);
+    //STACK_DUMP(&spu->addresses, LogFile);
+
+    LOG("*instructionPointer = %lld\n", *instructionPointer);
+    spuDump(spu, LogFile, __FILE__, __LINE__, __func__);
 
     return error;
 }
@@ -324,10 +338,38 @@ int commandJmp(int *bufIn, size_t *instructionPointer)
     assert(bufIn);
     assert(instructionPointer);
 
-    printf("instructionPointer = %lld\n", *instructionPointer);
+    //printf("instructionPointer = %lld\n", *instructionPointer);
     *instructionPointer = bufIn[*instructionPointer + 1] - 1;
-    printf("instructionPointer = %lld\n", *instructionPointer);
-    printf("instructionPointer + 1 = %lld\n", *instructionPointer + 1);
+    //printf("instructionPointer = %lld\n", *instructionPointer);
+    //printf("instructionPointer + 1 = %lld\n", *instructionPointer + 1);
+
+    return EXIT_SUCCESS;
+}
+
+int commandCall(Processor *spu, int *bufIn, size_t *instructionPointer)
+{
+    assert(spu);
+    assert(bufIn);
+    assert(instructionPointer);
+
+    stackPush(&spu->addresses, (int) *instructionPointer + 1);
+
+    return commandJmp(bufIn, instructionPointer);
+}
+
+int commandRet(Processor *spu, int *bufIn, size_t *instructionPointer)
+{
+    assert(spu);
+    assert(bufIn);
+    assert(instructionPointer);
+
+    int jumpAddress = -1;
+
+    LOG("before retting (call stack):\n");
+    STACK_DUMP(&spu->addresses, LogFile);
+    if (stackPop(&spu->addresses, &jumpAddress).stack_underflow) return STACK_UNDERFLOW;
+
+    *instructionPointer = jumpAddress;
 
     return EXIT_SUCCESS;
 }

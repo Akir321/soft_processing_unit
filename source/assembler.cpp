@@ -126,7 +126,7 @@ int runAssembler(textArray *textIn, LabelTable *labels, FILE *foutbin, int **buf
     char command[MaxCommandLength] = {};
     sscanf(textIn->strings[line].str, "%16s", command);
 
-    while (strcmp(command, "hlc") != 0)
+    while (line < textIn->nLines)
     {
         printf("%s\n", textIn->strings[line].str);
         //printf("%s\n", command);
@@ -149,7 +149,7 @@ int runAssembler(textArray *textIn, LabelTable *labels, FILE *foutbin, int **buf
         sscanf(textIn->strings[++line].str, "%16s", command);
     }
 
-    writeToArr(*bufOut, position, HLC);
+    writeToArr(*bufOut, position, HLT);
 
     return EXIT_SUCCESS;
 }

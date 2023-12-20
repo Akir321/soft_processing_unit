@@ -1,4 +1,4 @@
-DEF_CMD(HLC,     -1, 0, 0)
+DEF_CMD(HLT,     -1, 0, 0)
 
 DEF_CMD(PUSH,     0, 1, commandPush(spu, bufIn, instructionPointer))
 
@@ -45,3 +45,7 @@ DEF_CMD_JMP(JBE, 5 | ARG_TYPE_ADDRESS, 1, <=)
 DEF_CMD_JMP(JE,  6 | ARG_TYPE_ADDRESS, 1, ==)
 
 DEF_CMD_JMP(JN,  7 | ARG_TYPE_ADDRESS, 1, !=)
+
+DEF_CMD(CALL,    20 | ARG_TYPE_ADDRESS, 1, commandCall(spu, bufIn, instructionPointer))
+
+DEF_CMD(RET,     21,                    0, commandRet (spu, bufIn, instructionPointer))

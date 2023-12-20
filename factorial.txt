@@ -1,0 +1,28 @@
+in
+
+call :factorial
+
+out
+hlt
+
+:factorial
+
+pop rax
+
+push rax
+push 1
+ja :fact_continue
+push 1
+ret
+
+:fact_continue
+push rax
+push rax
+push 1
+sub
+
+call :factorial
+
+mul
+
+ret

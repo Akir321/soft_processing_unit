@@ -2,7 +2,7 @@
 #define  __CMD_ENUM_H__
 
 const int MaxCommandLength = 16;
-const int RegistersNumber  = 4;
+const int RegistersNumber  = 10;
 
 const char * const Signature = "will";
 

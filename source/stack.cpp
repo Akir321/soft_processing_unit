@@ -8,7 +8,7 @@
 if (errorFieldToU(stackError(stk))) \
 { \
     printf("STACK CORRUPTED\n"); \
-    STACK_DUMP(stk); \
+    STACK_DUMP(stk, LogFile); \
     return stackError(stk); \
 }
 
@@ -109,48 +109,48 @@ stackErrorField stackDtor(stack *stk)
     return error;
 }
 
-stackErrorField stackDump(stack *stk, const char *file, int line, const char *function)
+stackErrorField stackDump(stack *stk, FILE *f, const char *file, int line, const char *function)
 {
     assert(stk);
-    LOG("I'm stackDump called from %s (%d) %s\n", function, line, file);
+    fprintf(f, "I'm stackDump called from %s (%d) %s\n", function, line, file);
     stackErrorField error = stackError(stk);
     printStackErrors(error);
 
-    LOG(" capacity = %lld\n size = %lld\n", stk->capacity, stk->size);
+    fprintf(f, " capacity = %lld\n size = %lld\n", stk->capacity, stk->size);
 
     HASH_PROTECTION (
-        LOG(" hash = %u\n", stk->hash);
+        fprintf(f, " hash = %u\n", stk->hash);
     )
 
     CANARY_PROTECTION (
-        LOG("stackCanary1  = 0x%llx\n", stk->stackCanary1);
-        LOG("stackCanary2  = 0x%llx\n", stk->stackCanary2);
+        fprintf(f, "stackCanary1  = 0x%llx\n", stk->stackCanary1);
+        fprintf(f, "stackCanary2  = 0x%llx\n", stk->stackCanary2);
     )
 
-    LOG(" data[%p] = ", stk->data);
+    fprintf(f, " data[%p] = ", stk->data);
     if (!stk->data)
     {
-        LOG("NULL\n");
+        fprintf(f, "NULL\n");
         return error;
     }
-    putc('\n', LogFile);
+    putc('\n', f);
 
     for (size_t i = 0; 
          i < stk->size + ELEM_PRINT_ADD 
          && i < stk->capacity
          && i < LAST_PRINTED; i++)
     {
-        LOG("   ");
-        if (i < stk->size) putc('*', LogFile);
-        else               putc(' ', LogFile);
-        LOG("[%lld] = " elemFormat "\n", i, stk->data[i]);
+        fprintf(f, "   ");
+        if (i < stk->size) putc('*', f);
+        else               putc(' ', f);
+        fprintf(f, "[%lld] = " elemFormat "\n", i, stk->data[i]);
     }
 
     CANARY_PROTECTION (
         unsigned long long buf_canary = *((unsigned long long *)stk->data - 1);
-        LOG("bufferCanary1 = 0x%llx\n", buf_canary);
+        fprintf(f, "bufferCanary1 = 0x%llx\n", buf_canary);
         buf_canary = *(unsigned long long *)(stk->data + stk->capacity);
-        LOG("bufferCanary2 = 0x%llx\n", buf_canary);
+        fprintf(f, "bufferCanary2 = 0x%llx\n", buf_canary);
     )
 
     return error;
@@ -161,7 +161,7 @@ void printStackErrors(stackErrorField error)
     if (error.stack_null)       LOG("ERROR: stack_null     = 1\n");
     if (error.data_null)        LOG("ERROR: data_null      = 1\n");
     if (error.small_capacity)   LOG("ERROR: small_capacity = 1\n");
-    if (error.anti_overflow)    LOG("ERROR: anti_overflow  = 1\n");
+    if (error.stack_underflow)  LOG("ERROR: underflow      = 1\n");
     if (error.realloc_failed)   LOG("ERROR: realloc_failed = 1\n");
 
     CANARY_PROTECTION (
@@ -199,7 +199,7 @@ stackErrorField stackPop(stack *stk, elem_t *returnValue)
 
     if (!stk->size) 
     {
-        error.anti_overflow = 1;
+        error.stack_underflow = 1;
         return error;
     }
     if (stk->size * REALLOC_RATE * REALLOC_RATE <= stk->capacity) error =  stackRealloc(stk);

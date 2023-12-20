@@ -12,13 +12,14 @@ const double ComparisonPrecision = 0.000001;
 struct Processor
 {
     stack stk;
+    stack addresses;
     int registers[RegistersNumber];
 };
 
 int spuCtor (Processor *spu, size_t stackCapacity);
 int spuDtor (Processor *spu);
 int spuError(Processor *spu);
-int spuDump (Processor *spu, const char *file, int line, const char *function);
+int spuDump (Processor *spu, FILE *f, const char *file, int line, const char *function);
 
 int loadProgramBin(int **bufIn, size_t *bufSize, FILE *fin);
 
@@ -37,6 +38,8 @@ int commandIn      (Processor *spu);
 int commandSqrt    (Processor *spu);
 int commandPop     (Processor *spu, int *bufIn, size_t *instructionPointer);
 int commandPushR   (Processor *spu, int *bufIn, size_t *instructionPointer);
+int commandCall    (Processor *spu, int *bufIn, size_t *instructionPointer);
+int commandRet(Processor *spu, int *bufIn, size_t *instructionPointer);
 
 int commandJmp(int *bufIn, size_t *instructionPointer);
 

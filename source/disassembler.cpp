@@ -33,7 +33,7 @@ int runDisassembler(int *bufIn, FILE *fout)
     assert(bufIn);
     assert(fout);
 
-    while (*bufIn != HLC)
+    while (*bufIn != HLT)
     {   
         switch (*bufIn)
         {
@@ -48,7 +48,7 @@ int runDisassembler(int *bufIn, FILE *fout)
         bufIn++;
     }
 
-    fprintf(fout, "%s", "hlc");
+    fprintf(fout, "%s", "hlt");
     return EXIT_SUCCESS;
 }
 

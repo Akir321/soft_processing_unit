@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Logs
+*.html
+
+TODO_spu.txt
+вопросы к деду.txt

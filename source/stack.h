@@ -7,8 +7,8 @@ typedef int elem_t;
 #undef  CANARY_PROTECTION
 #undef    HASH_PROTECTION
 
-#define CANARY_PROTECTION(...) __VA_ARGS__
-#define   HASH_PROTECTION(...) __VA_ARGS__
+#define CANARY_PROTECTION(...) //__VA_ARGS__
+#define   HASH_PROTECTION(...) //__VA_ARGS__
 
 const size_t DEFAULT_CAPACITY = 8;
 const size_t LAST_PRINTED     = 16;
@@ -78,7 +78,7 @@ stackErrorField stackDtor(stack *stk);
  * @param [in] function 
  * @return stackErrorField 
  */
-stackErrorField stackDump(stack *stk, const char *file, int line, const char *function);
+stackErrorField stackDump(stack *stk, FILE *f, const char *file, int line, const char *function);
 
 /**
  * @brief prints out the errors of the stack (if they are present)
@@ -91,7 +91,7 @@ void printStackErrors(stackErrorField error);
  * @brief an easier way of printing the info
  * 
  */
-#define STACK_DUMP(stk) stackDump((stk), __FILE__, __LINE__, __func__);
+#define STACK_DUMP(stk, f) stackDump((stk), f, __FILE__, __LINE__, __func__);
 
 /**
  * @brief adds the value to the top of the stack
